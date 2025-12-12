@@ -1,0 +1,44 @@
+# Python
+venv/
+__pycache__/
+
+# Node.js
+node_modules/
+
+# Java
+*.class
+target/
+
+# C#
+bin/
+obj/
+*.user
+*.suo
+*.csproj.user
+
+# PHP/Symfony
+vendor/
+var/cache/
+
+# Environnements
+.env
+.env.local
+appsettings.Development.json
+
+# Logs
+*.log
+logs/
+
+# Base de données
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Système
+.DS_Store
+Thumbs.db
