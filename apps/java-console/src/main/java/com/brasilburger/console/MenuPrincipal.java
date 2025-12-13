@@ -1,20 +1,34 @@
 package com.brasilburger.console;
 
 import com.brasilburger.controller.JavaProduitController;
+import com.brasilburger.controller.MenuController;
+import com.brasilburger.repository.MenuItemRepository;
 import com.brasilburger.repository.ProduitRepository;
 import com.brasilburger.service.ImageService;
 import com.brasilburger.service.JavaProduitService;
+import com.brasilburger.service.MenuCompositionService;
 
 public class MenuPrincipal {
     private final ProduitMenu produitMenu;
+    private final MenuCompositionUI menuCompositionUI;
+    private final ImageUploadUI imageUploadUI;
     private final JavaProduitController controller;
     private boolean enExecution = true;
     
-    public MenuPrincipal(ProduitRepository produitRepository) {
+    public MenuPrincipal(ProduitRepository produitRepository, MenuItemRepository menuItemRepository) {
+        // Initialisation des services
         JavaProduitService produitService = new JavaProduitService(produitRepository);
+        MenuCompositionService menuService = new MenuCompositionService(menuItemRepository, produitRepository);
         ImageService imageService = new ImageService();
+        
+        // Initialisation des contrôleurs
         this.controller = new JavaProduitController(produitService, imageService);
+        MenuController menuController = new MenuController(menuService);
+        
+        // Initialisation des vues
         this.produitMenu = new ProduitMenu(controller);
+        this.menuCompositionUI = new MenuCompositionUI(menuController);
+        this.imageUploadUI = new ImageUploadUI(imageService);
     }
     
     public void afficher() {
@@ -23,7 +37,7 @@ public class MenuPrincipal {
             afficherOptions();
             
             try {
-                int choix = ConsoleUtils.lireEntier("Votre choix (1-4): ");
+                int choix = ConsoleUtils.lireEntier("Votre choix (1-6): ");
                 traiterChoix(choix);
             } catch (Exception e) {
                 ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
@@ -35,20 +49,36 @@ public class MenuPrincipal {
     private void afficherOptions() {
         System.out.println();
         System.out.println("1. 🍔 Gérer les produits");
-        System.out.println("2. 📊 Voir les statistiques");
-        System.out.println("3. ⚙️  Configuration");
-        System.out.println("4. ❌ Quitter");
+        System.out.println("2. 🧾 Composition des menus");
+        System.out.println("3. 🖼️  Gestion des images");
+        System.out.println("4. 📊 Voir les statistiques");
+        System.out.println("5. ⚙️  Configuration");
+        System.out.println("6. ❌ Quitter");
         System.out.println();
     }
     
     private void traiterChoix(int choix) {
         switch (choix) {
-            case 1: produitMenu.afficher(); break;
-            case 2: afficherStatistiques(); break;
-            case 3: afficherConfiguration(); break;
-            case 4: quitter(); break;
+            case 1:
+                produitMenu.afficher();
+                break;
+            case 2:
+                menuCompositionUI.afficher();
+                break;
+            case 3:
+                imageUploadUI.afficher();
+                break;
+            case 4:
+                afficherStatistiques();
+                break;
+            case 5:
+                afficherConfiguration();
+                break;
+            case 6:
+                quitter();
+                break;
             default:
-                ConsoleUtils.afficherAvertissement("Choix invalide (1-4).");
+                ConsoleUtils.afficherAvertissement("Choix invalide. Veuillez entrer un nombre entre 1 et 6.");
                 ConsoleUtils.attendreEntree();
         }
     }
