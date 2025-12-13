@@ -241,4 +241,117 @@ public class ProduitRepository {
             throw e;
         }
     }
+
+
+    /**
+ * Trouve les produits par type
+ */
+public List<Produit> findByType(TypeProduit type) throws SQLException {
+    if (type == null) {
+        throw new IllegalArgumentException("Le type ne peut pas être null");
+    }
+    
+    List<Produit> produits = new ArrayList<>();
+    String sql = "SELECT * FROM produit WHERE type = ? AND est_archive = false ORDER BY nom";
+    
+    try (Connection conn = dbConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+        stmt.setString(1, type.getValeurDB());
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                produits.add(mapResultSetToProduit(rs));
+            }
+        }
+        
+        System.out.println("✅ " + produits.size() + " produit(s) trouvé(s) pour type: " + type);
+        return produits;
+        
+    } catch (SQLException e) {
+        System.err.println("❌ Erreur lors de la recherche par type: " + e.getMessage());
+        throw e;
+    }
+}
+
+/**
+ * Trouve les produits disponibles (non archivés et en stock)
+ */
+public List<Produit> findAvailableProducts() throws SQLException {
+    List<Produit> produits = new ArrayList<>();
+    String sql = "SELECT * FROM produit WHERE disponible = true AND est_archive = false ORDER BY nom";
+    
+    try (Connection conn = dbConnection.getConnection();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+        
+        while (rs.next()) {
+            produits.add(mapResultSetToProduit(rs));
+        }
+        
+        System.out.println("✅ " + produits.size() + " produit(s) disponible(s)");
+        return produits;
+        
+    } catch (SQLException e) {
+        System.err.println("❌ Erreur lors de la recherche des produits disponibles: " + e.getMessage());
+        throw e;
+    }
+}
+
+/**
+ * Recherche des produits par nom (recherche partielle)
+ */
+public List<Produit> searchByName(String keyword) throws SQLException {
+    if (keyword == null || keyword.trim().isEmpty()) {
+        return findAll(); // Retourne tous si recherche vide
+    }
+    
+    List<Produit> produits = new ArrayList<>();
+    String sql = "SELECT * FROM produit WHERE LOWER(nom) LIKE LOWER(?) AND est_archive = false ORDER BY nom";
+    
+    try (Connection conn = dbConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+        // Ajoute les % pour la recherche partielle
+        stmt.setString(1, "%" + keyword.trim() + "%");
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                produits.add(mapResultSetToProduit(rs));
+            }
+        }
+        
+        System.out.println("✅ " + produits.size() + " produit(s) trouvé(s) pour: '" + keyword + "'");
+        return produits;
+        
+    } catch (SQLException e) {
+        System.err.println("❌ Erreur lors de la recherche par nom: " + e.getMessage());
+        throw e;
+    }
+}
+
+/**
+ * Trouve les produits archivés
+ */
+public List<Produit> findArchivedProducts() throws SQLException {
+    List<Produit> produits = new ArrayList<>();
+    String sql = "SELECT * FROM produit WHERE est_archive = true ORDER BY nom";
+    
+    try (Connection conn = dbConnection.getConnection();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+        
+        while (rs.next()) {
+            produits.add(mapResultSetToProduit(rs));
+        }
+        
+        System.out.println("✅ " + produits.size() + " produit(s) archivé(s)");
+        return produits;
+        
+    } catch (SQLException e) {
+        System.err.println("❌ Erreur lors de la recherche des produits archivés: " + e.getMessage());
+        throw e;
+    }
+}
+
 }

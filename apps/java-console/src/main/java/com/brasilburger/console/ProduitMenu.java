@@ -40,17 +40,19 @@ public class ProduitMenu {
      * Affiche les options du menu
      */
     private void afficherOptions() {
-        System.out.println();
-        System.out.println("1. 📋 Lister tous les produits");
-        System.out.println("2. 🔍 Rechercher un produit");
-        System.out.println("3. ➕ Créer un nouveau produit");
-        System.out.println("4. ✏️  Modifier un produit");
-        System.out.println("5. 📁 Archiver un produit");
-        System.out.println("6. 📤 Restaurer un produit archivé");
-        System.out.println("7. 🗑️  Supprimer définitivement");
-        System.out.println("8. ↩️  Retour au menu principal");
-        System.out.println();
-    }
+    System.out.println();
+    System.out.println("1. 📋 Lister tous les produits");
+    System.out.println("2. 🔍 Rechercher un produit");
+    System.out.println("3. ➕ Créer un nouveau produit");
+    System.out.println("4. ✏️  Modifier un produit");
+    System.out.println("5. 📁 Archiver un produit");
+    System.out.println("6. 📤 Restaurer un produit archivé");
+    System.out.println("7. 🗑️  Supprimer définitivement");
+    System.out.println("8. 🏷️  Lister par type (BURGER/MENU/COMPLEMENT)");  // <-- NOUVEAU
+    System.out.println("9. 📊 Voir les produits archivés");  // <-- NOUVEAU
+    System.out.println("10. ↩️  Retour au menu principal");  // <-- CHANGÉ
+    System.out.println();
+   }
     
     /**
      * Traite le choix de l'utilisateur
@@ -84,10 +86,18 @@ public class ProduitMenu {
             case 7:
                 supprimerProduit();
                 break;
-                
+    
             case 8:
-                retourMenuPrincipal();
+                 listerProduitsParType();
+                 break;
+    
+            case 9:
+                listerProduitsArchives();
                 break;
+                
+            case 10:
+                 retourMenuPrincipal();
+                  break;
                 
             default:
                 ConsoleUtils.afficherAvertissement("Choix invalide. Veuillez entrer un nombre entre 1 et 8.");
@@ -317,6 +327,79 @@ public class ProduitMenu {
         ConsoleUtils.attendreEntree();
     }
     
+
+/**
+ * Liste les produits par type
+ */
+private void listerProduitsParType() {
+    ConsoleUtils.afficherEnTete("Produits par Type");
+    
+    System.out.println("Types disponibles: " + TypeProduit.getTypesDisponibles());
+    String typeStr = ConsoleUtils.lireStringObligatoire("Entrez le type (BURGER/MENU/COMPLEMENT): ").toUpperCase();
+    
+    try {
+        TypeProduit type = TypeProduit.depuisValeurDB(typeStr);
+        List<Produit> produits = produitService.listerProduitsParTypeRepository(type);
+        
+        if (produits.isEmpty()) {
+            System.out.println("📭 Aucun produit trouvé pour le type: " + type);
+        } else {
+            System.out.println("📦 Total: " + produits.size() + " produit(s) de type " + type);
+            System.out.println();
+            
+            for (Produit produit : produits) {
+                System.out.printf("• [%d] %s - %.2f FCFA%n",
+                    produit.getId(),
+                    produit.getNom(),
+                    produit.getPrix());
+                
+                if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
+                    System.out.println("  📝 " + produit.getDescription());
+                }
+            }
+        }
+    } catch (Exception e) {
+        ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
+    }
+    
+    ConsoleUtils.attendreEntree();
+}
+
+/**
+ * Liste les produits archivés
+ */
+private void listerProduitsArchives() {
+    ConsoleUtils.afficherEnTete("Produits Archivés");
+    
+    try {
+        List<Produit> produits = produitService.listerProduitsArchives();
+        
+        if (produits.isEmpty()) {
+            System.out.println("📭 Aucun produit archivé.");
+        } else {
+            System.out.println("📦 Total: " + produits.size() + " produit(s) archivé(s)");
+            System.out.println();
+            
+            for (Produit produit : produits) {
+                System.out.printf("• [%d] %s - %s - %.2f FCFA%n",
+                    produit.getId(),
+                    produit.getNom(),
+                    produit.getType().getValeurDB(),
+                    produit.getPrix());
+                
+                if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
+                    System.out.println("  📝 " + produit.getDescription());
+                }
+            }
+        }
+    } catch (Exception e) {
+        ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
+    }
+    
+    ConsoleUtils.attendreEntree();
+}
+
+
     /**
      * Retourne au menu principal
      */

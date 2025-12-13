@@ -309,4 +309,91 @@ public class JavaProduitService {
             return false;
         }
     }
+
+    /**
+ * Liste les produits par type (via repository)
+ */
+public List<Produit> listerProduitsParTypeRepository(TypeProduit type) {
+    if (type == null) {
+        throw new IllegalArgumentException("Le type est obligatoire");
+    }
+    
+    try {
+        return produitRepository.findByType(type);
+    } catch (SQLException e) {
+        throw new RuntimeException("Erreur lors de la récupération des produits par type: " + e.getMessage(), e);
+    }
+}
+
+/**
+ * Liste les produits disponibles (via repository)
+ */
+public List<Produit> listerProduitsDisponiblesRepository() {
+    try {
+        return produitRepository.findAvailableProducts();
+    } catch (SQLException e) {
+        throw new RuntimeException("Erreur lors de la récupération des produits disponibles: " + e.getMessage(), e);
+    }
+}
+
+/**
+ * Recherche avancée par nom (via repository)
+ */
+public List<Produit> rechercherProduitsParNomRepository(String keyword) {
+    if (keyword == null || keyword.trim().isEmpty()) {
+        return listerTousProduits();
+    }
+    
+    try {
+        return produitRepository.searchByName(keyword);
+    } catch (SQLException e) {
+        throw new RuntimeException("Erreur lors de la recherche de produits: " + e.getMessage(), e);
+    }
+}
+
+/**
+ * Liste les produits archivés
+ */
+public List<Produit> listerProduitsArchives() {
+    try {
+        return produitRepository.findArchivedProducts();
+    } catch (SQLException e) {
+        throw new RuntimeException("Erreur lors de la récupération des produits archivés: " + e.getMessage(), e);
+    }
+}
+
+/**
+ * Vérifie si un produit avec ce nom existe déjà
+ */
+public boolean produitExisteParNom(String nom) {
+    if (nom == null || nom.trim().isEmpty()) {
+        return false;
+    }
+    
+    try {
+        List<Produit> produits = produitRepository.searchByName(nom.trim());
+        return !produits.isEmpty();
+    } catch (SQLException e) {
+        return false;
+    }
+}
+
+/**
+ * Met à jour seulement l'image d'un produit
+ */
+public Produit mettreAJourImageProduit(Long id, String imageUrl) {
+    if (id == null || id <= 0) {
+        throw new IllegalArgumentException("ID invalide");
+    }
+    
+    Produit produit = obtenirProduitParId(id);
+    produit.setUrlImage(imageUrl);
+    produit.setUpdatedAt(LocalDateTime.now());
+    
+    try {
+        return produitRepository.update(produit);
+    } catch (SQLException e) {
+        throw new RuntimeException("Erreur lors de la mise à jour de l'image: " + e.getMessage(), e);
+    }
+}
 }
