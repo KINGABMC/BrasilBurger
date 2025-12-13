@@ -1,7 +1,8 @@
 package com.brasilburger.model;
 
 /**
- * Entité MenuItem correspondant à la table "menu_item" du MLD
+ * Entité MenuItem correspondant à la table "menu_item du MLD
+ * " 
  */
 public class MenuItem {
     private Long id;

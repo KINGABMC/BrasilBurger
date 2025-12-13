@@ -3,7 +3,7 @@ package com.brasilburger.model;
 import java.time.LocalDateTime;
 
 /**
- * Entité Produit correspondant à la table "produit" du MLD
+ * Entité Produit correspondant à la table "produit DU mld" 
  */
 public class Produit {
     private Long id;
