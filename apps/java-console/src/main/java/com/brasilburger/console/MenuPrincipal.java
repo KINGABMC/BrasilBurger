@@ -3,20 +3,16 @@ package com.brasilburger.console;
 import com.brasilburger.repository.ProduitRepository;
 import com.brasilburger.service.JavaProduitService;
 
-import java.util.Scanner;
-
 /**
  * Menu principal de l'application console
  */
 public class MenuPrincipal {
-    private final Scanner scanner;
     private final ProduitMenu produitMenu;
     private boolean enExecution = true;
     
     public MenuPrincipal(ProduitRepository produitRepository) {
-        this.scanner = new Scanner(System.in);
         JavaProduitService produitService = new JavaProduitService(produitRepository);
-        this.produitMenu = new ProduitMenu(scanner, produitService);
+        this.produitMenu = new ProduitMenu(produitService);
     }
     
     /**
@@ -24,29 +20,17 @@ public class MenuPrincipal {
      */
     public void afficher() {
         while (enExecution) {
-            afficherEnTete();
+            ConsoleUtils.afficherEnTete("Menu Principal - Brasil Burger");
             afficherOptions();
             
             try {
-                int choix = lireChoix();
+                int choix = ConsoleUtils.lireEntier("Votre choix (1-4): ");
                 traiterChoix(choix);
             } catch (Exception e) {
-                System.err.println("❌ Erreur: " + e.getMessage());
-                attendreEntree();
+                ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
+                ConsoleUtils.attendreEntree();
             }
         }
-        
-        scanner.close();
-    }
-    
-    /**
-     * Affiche l'en-tête du menu
-     */
-    private void afficherEnTete() {
-        System.out.println();
-        System.out.println("════════════════════════════════════════════");
-        System.out.println("        MENU PRINCIPAL - BRASIL BURGER");
-        System.out.println("════════════════════════════════════════════");
     }
     
     /**
@@ -59,22 +43,6 @@ public class MenuPrincipal {
         System.out.println("3. ⚙️  Configuration");
         System.out.println("4. ❌ Quitter");
         System.out.println();
-        System.out.print("Votre choix (1-4): ");
-    }
-    
-    /**
-     * Lit le choix de l'utilisateur
-     */
-    private int lireChoix() {
-        try {
-            String input = scanner.nextLine().trim();
-            if (input.isEmpty()) {
-                return -1;
-            }
-            return Integer.parseInt(input);
-        } catch (NumberFormatException e) {
-            return -1;
-        }
     }
     
     /**
@@ -99,8 +67,8 @@ public class MenuPrincipal {
                 break;
                 
             default:
-                System.out.println("⚠️  Choix invalide. Veuillez entrer un nombre entre 1 et 4.");
-                attendreEntree();
+                ConsoleUtils.afficherAvertissement("Choix invalide. Veuillez entrer un nombre entre 1 et 4.");
+                ConsoleUtils.attendreEntree();
         }
     }
     
@@ -108,11 +76,7 @@ public class MenuPrincipal {
      * Affiche les statistiques de l'application
      */
     private void afficherStatistiques() {
-        System.out.println();
-        System.out.println("════════════════════════════════════════════");
-        System.out.println("            STATISTIQUES");
-        System.out.println("════════════════════════════════════════════");
-        System.out.println();
+        ConsoleUtils.afficherEnTete("Statistiques");
         
         try {
             int totalProduits = produitMenu.getProduitService().compterProduits();
@@ -124,21 +88,17 @@ public class MenuPrincipal {
             System.out.println("   • Produits archivés: " + (totalProduits - produitsDisponibles));
             
         } catch (Exception e) {
-            System.out.println("❌ Impossible de récupérer les statistiques: " + e.getMessage());
+            ConsoleUtils.afficherErreur("Impossible de récupérer les statistiques: " + e.getMessage());
         }
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
      * Affiche la configuration actuelle
      */
     private void afficherConfiguration() {
-        System.out.println();
-        System.out.println("════════════════════════════════════════════");
-        System.out.println("            CONFIGURATION");
-        System.out.println("════════════════════════════════════════════");
-        System.out.println();
+        ConsoleUtils.afficherEnTete("Configuration");
         
         System.out.println("Application Brasil Burger Console");
         System.out.println("Version: 1.0.0");
@@ -149,7 +109,7 @@ public class MenuPrincipal {
         System.out.println("• L'archivage et restauration des produits");
         System.out.println("• Les statistiques de vente");
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
@@ -157,23 +117,11 @@ public class MenuPrincipal {
      */
     private void quitter() {
         System.out.println();
-        System.out.print("Êtes-vous sûr de vouloir quitter? (O/N): ");
-        String confirmation = scanner.nextLine().trim().toUpperCase();
-        
-        if (confirmation.equals("O") || confirmation.equals("OUI")) {
+        if (ConsoleUtils.demanderConfirmation("Êtes-vous sûr de vouloir quitter?")) {
             enExecution = false;
-            System.out.println("✅ Fermeture de l'application...");
+            ConsoleUtils.afficherSucces("Fermeture de l'application...");
         } else {
-            System.out.println("⏸️  Retour au menu principal");
+            ConsoleUtils.afficherInfo("Retour au menu principal");
         }
-    }
-    
-    /**
-     * Attend que l'utilisateur appuie sur Entrée
-     */
-    private void attendreEntree() {
-        System.out.println();
-        System.out.print("Appuyez sur Entrée pour continuer...");
-        scanner.nextLine();
     }
 }

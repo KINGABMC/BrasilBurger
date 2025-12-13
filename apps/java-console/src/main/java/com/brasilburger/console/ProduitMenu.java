@@ -5,18 +5,15 @@ import com.brasilburger.model.TypeProduit;
 import com.brasilburger.service.JavaProduitService;
 
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Menu de gestion des produits
  */
 public class ProduitMenu {
-    private final Scanner scanner;
     private final JavaProduitService produitService;
     private boolean enExecution = true;
     
-    public ProduitMenu(Scanner scanner, JavaProduitService produitService) {
-        this.scanner = scanner;
+    public ProduitMenu(JavaProduitService produitService) {
         this.produitService = produitService;
     }
     
@@ -25,27 +22,17 @@ public class ProduitMenu {
      */
     public void afficher() {
         while (enExecution) {
-            afficherEnTete();
+            ConsoleUtils.afficherEnTete("Gestion des Produits");
             afficherOptions();
             
             try {
-                int choix = lireChoix();
+                int choix = ConsoleUtils.lireEntier("Votre choix (1-8): ");
                 traiterChoix(choix);
             } catch (Exception e) {
-                System.err.println("❌ Erreur: " + e.getMessage());
-                attendreEntree();
+                ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
+                ConsoleUtils.attendreEntree();
             }
         }
-    }
-    
-    /**
-     * Affiche l'en-tête du menu
-     */
-    private void afficherEnTete() {
-        System.out.println();
-        System.out.println("════════════════════════════════════════════");
-        System.out.println("        GESTION DES PRODUITS");
-        System.out.println("════════════════════════════════════════════");
     }
     
     /**
@@ -62,19 +49,6 @@ public class ProduitMenu {
         System.out.println("7. 🗑️  Supprimer définitivement");
         System.out.println("8. ↩️  Retour au menu principal");
         System.out.println();
-        System.out.print("Votre choix (1-8): ");
-    }
-    
-    /**
-     * Lit le choix de l'utilisateur
-     */
-    private int lireChoix() {
-        try {
-            String input = scanner.nextLine().trim();
-            return Integer.parseInt(input);
-        } catch (NumberFormatException e) {
-            return -1;
-        }
     }
     
     /**
@@ -115,8 +89,8 @@ public class ProduitMenu {
                 break;
                 
             default:
-                System.out.println("⚠️  Choix invalide. Veuillez entrer un nombre entre 1 et 8.");
-                attendreEntree();
+                ConsoleUtils.afficherAvertissement("Choix invalide. Veuillez entrer un nombre entre 1 et 8.");
+                ConsoleUtils.attendreEntree();
         }
     }
     
@@ -124,11 +98,7 @@ public class ProduitMenu {
      * Liste tous les produits
      */
     private void listerTousProduits() {
-        System.out.println();
-        System.out.println("════════════════════════════════════════════");
-        System.out.println("            LISTE DES PRODUITS");
-        System.out.println("════════════════════════════════════════════");
-        System.out.println();
+        ConsoleUtils.afficherEnTete("Liste des Produits");
         
         try {
             List<Produit> produits = produitService.listerTousProduits();
@@ -157,10 +127,10 @@ public class ProduitMenu {
                 }
             }
         } catch (Exception e) {
-            System.out.println("❌ Erreur: " + e.getMessage());
+            ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
         }
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
@@ -168,26 +138,19 @@ public class ProduitMenu {
      */
     private void rechercherProduit() {
         System.out.println();
-        System.out.print("🔍 Entrez le nom ou une partie du nom à rechercher: ");
-        String recherche = scanner.nextLine().trim();
-        
-        if (recherche.isEmpty()) {
-            System.out.println("⚠️  Veuillez entrer un terme de recherche.");
-            attendreEntree();
-            return;
-        }
+        String recherche = ConsoleUtils.lireStringObligatoire("🔍 Entrez le nom ou une partie du nom à rechercher: ");
         
         try {
             List<Produit> resultats = produitService.rechercherProduitsParNom(recherche);
             
             System.out.println();
-            System.out.println("Résultats pour \"" + recherche + "\":");
+            ConsoleUtils.afficherSousTitre("Résultats pour \"" + recherche + "\"");
             System.out.println();
             
             if (resultats.isEmpty()) {
                 System.out.println("🔍 Aucun produit trouvé.");
             } else {
-                System.out.println("📊 " + resultats.size() + " produit(s) trouvé(s):");
+                ConsoleUtils.afficherInfo(resultats.size() + " produit(s) trouvé(s):");
                 System.out.println();
                 
                 for (Produit produit : resultats) {
@@ -199,163 +162,139 @@ public class ProduitMenu {
                 }
             }
         } catch (Exception e) {
-            System.out.println("❌ Erreur: " + e.getMessage());
+            ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
         }
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
      * Crée un nouveau produit
      */
     private void creerProduit() {
-        System.out.println();
-        System.out.println("════════════════════════════════════════════");
-        System.out.println("        CRÉATION D'UN PRODUIT");
-        System.out.println("════════════════════════════════════════════");
-        System.out.println();
+        ConsoleUtils.afficherEnTete("Création d'un Produit");
         
         try {
-            System.out.print("Nom du produit: ");
-            String nom = scanner.nextLine().trim();
+            String nom = ConsoleUtils.lireStringObligatoire("Nom du produit: ");
             
             System.out.println("Types disponibles: " + TypeProduit.getTypesDisponibles());
-            System.out.print("Type (BURGER/MENU/COMPLEMENT): ");
-            String typeStr = scanner.nextLine().trim().toUpperCase();
+            String typeStr = ConsoleUtils.lireStringObligatoire("Type (BURGER/MENU/COMPLEMENT): ").toUpperCase();
             TypeProduit type = TypeProduit.depuisValeurDB(typeStr);
             
-            System.out.print("Description (optionnel): ");
-            String description = scanner.nextLine().trim();
-            if (description.isEmpty()) description = null;
-            
-            System.out.print("Prix (en FCFA): ");
-            String prixStr = scanner.nextLine().trim();
-            Double prix = Double.parseDouble(prixStr);
+            String description = ConsoleUtils.lireStringOptionnelle("Description (optionnel): ");
+            double prix = ConsoleUtils.lireDouble("Prix (en FCFA): ");
             
             Produit produit = produitService.creerProduit(nom, type, description, prix);
-            System.out.println("✅ Produit créé avec succès: " + produit);
+            ConsoleUtils.afficherSucces("Produit créé avec succès: " + produit);
             
         } catch (Exception e) {
-            System.out.println("❌ Erreur lors de la création: " + e.getMessage());
+            ConsoleUtils.afficherErreur("Erreur lors de la création: " + e.getMessage());
         }
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
      * Modifie un produit existant
      */
     private void modifierProduit() {
-        System.out.println();
-        System.out.print("Entrez l'ID du produit à modifier: ");
-        String idStr = scanner.nextLine().trim();
+        ConsoleUtils.afficherEnTete("Modification d'un Produit");
         
         try {
-            Long id = Long.parseLong(idStr);
+            long id = ConsoleUtils.lireEntier("Entrez l'ID du produit à modifier: ");
             Produit produit = produitService.obtenirProduitParId(id);
             
             System.out.println();
-            System.out.println("Produit actuel: " + produit);
+            ConsoleUtils.afficherInfo("Produit actuel: " + produit);
             System.out.println();
             
-            System.out.print("Nouveau nom (laissez vide pour ne pas modifier): ");
-            String nom = scanner.nextLine().trim();
-            if (nom.isEmpty()) nom = null;
+            String nom = ConsoleUtils.lireStringOptionnelle("Nouveau nom (laissez vide pour ne pas modifier): ");
             
             System.out.print("Nouveau type (BURGER/MENU/COMPLEMENT, laissez vide pour ne pas modifier): ");
-            String typeStr = scanner.nextLine().trim().toUpperCase();
-            TypeProduit type = typeStr.isEmpty() ? null : TypeProduit.depuisValeurDB(typeStr);
+            String typeStr = ConsoleUtils.lireStringOptionnelle("");
+            TypeProduit type = typeStr == null ? null : TypeProduit.depuisValeurDB(typeStr.toUpperCase());
             
-            System.out.print("Nouvelle description (laissez vide pour ne pas modifier): ");
-            String description = scanner.nextLine().trim();
-            if (description.isEmpty()) description = null;
+            String description = ConsoleUtils.lireStringOptionnelle("Nouvelle description (laissez vide pour ne pas modifier): ");
             
             System.out.print("Nouveau prix (laissez vide pour ne pas modifier): ");
-            String prixStr = scanner.nextLine().trim();
-            Double prix = prixStr.isEmpty() ? null : Double.parseDouble(prixStr);
+            String prixStr = ConsoleUtils.lireStringOptionnelle("");
+            Double prix = prixStr == null ? null : Double.parseDouble(prixStr);
             
             Produit produitModifie = produitService.modifierProduit(id, nom, type, description, prix);
-            System.out.println("✅ Produit modifié avec succès: " + produitModifie);
+            ConsoleUtils.afficherSucces("Produit modifié avec succès: " + produitModifie);
             
         } catch (Exception e) {
-            System.out.println("❌ Erreur lors de la modification: " + e.getMessage());
+            ConsoleUtils.afficherErreur("Erreur lors de la modification: " + e.getMessage());
         }
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
      * Archive un produit
      */
     private void archiverProduit() {
-        System.out.println();
-        System.out.print("Entrez l'ID du produit à archiver: ");
-        String idStr = scanner.nextLine().trim();
+        ConsoleUtils.afficherEnTete("Archivage d'un Produit");
         
         try {
-            Long id = Long.parseLong(idStr);
+            long id = ConsoleUtils.lireEntier("Entrez l'ID du produit à archiver: ");
             
-            System.out.print("Êtes-vous sûr de vouloir archiver ce produit? (O/N): ");
-            String confirmation = scanner.nextLine().trim().toUpperCase();
-            
-            if (confirmation.equals("O") || confirmation.equals("OUI")) {
+            if (ConsoleUtils.demanderConfirmation("Êtes-vous sûr de vouloir archiver ce produit?")) {
                 produitService.archiverProduit(id);
             } else {
-                System.out.println("⏸️  Archivage annulé.");
+                ConsoleUtils.afficherInfo("Archivage annulé.");
             }
         } catch (Exception e) {
-            System.out.println("❌ Erreur lors de l'archivage: " + e.getMessage());
+            ConsoleUtils.afficherErreur("Erreur lors de l'archivage: " + e.getMessage());
         }
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
      * Restaure un produit archivé
      */
     private void restaurerProduit() {
-        System.out.println();
-        System.out.print("Entrez l'ID du produit à restaurer: ");
-        String idStr = scanner.nextLine().trim();
+        ConsoleUtils.afficherEnTete("Restauration d'un Produit Archivé");
         
         try {
-            Long id = Long.parseLong(idStr);
+            long id = ConsoleUtils.lireEntier("Entrez l'ID du produit à restaurer: ");
             produitService.restaurerProduit(id);
         } catch (Exception e) {
-            System.out.println("❌ Erreur lors de la restauration: " + e.getMessage());
+            ConsoleUtils.afficherErreur("Erreur lors de la restauration: " + e.getMessage());
         }
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
      * Supprime définitivement un produit
      */
     private void supprimerProduit() {
-        System.out.println();
+        ConsoleUtils.afficherEnTete("Suppression Définitive d'un Produit");
+        
         System.out.println("⚠️  ATTENTION: Cette action est irréversible!");
-        System.out.print("Entrez l'ID du produit à supprimer définitivement: ");
-        String idStr = scanner.nextLine().trim();
+        System.out.println();
         
         try {
-            Long id = Long.parseLong(idStr);
+            long id = ConsoleUtils.lireEntier("Entrez l'ID du produit à supprimer définitivement: ");
             
             System.out.print("Êtes-vous ABSOLUMENT sûr? (tapez 'SUPPRIMER' pour confirmer): ");
-            String confirmation = scanner.nextLine().trim();
+            String confirmation = ConsoleUtils.lireStringObligatoire("");
             
             if (confirmation.equals("SUPPRIMER")) {
                 boolean supprime = produitService.supprimerProduitDefinitivement(id);
                 if (supprime) {
-                    System.out.println("✅ Produit supprimé définitivement.");
+                    ConsoleUtils.afficherSucces("Produit supprimé définitivement.");
                 }
             } else {
-                System.out.println("⏸️  Suppression annulée.");
+                ConsoleUtils.afficherInfo("Suppression annulée.");
             }
         } catch (Exception e) {
-            System.out.println("❌ Erreur lors de la suppression: " + e.getMessage());
+            ConsoleUtils.afficherErreur("Erreur lors de la suppression: " + e.getMessage());
         }
         
-        attendreEntree();
+        ConsoleUtils.attendreEntree();
     }
     
     /**
@@ -363,16 +302,7 @@ public class ProduitMenu {
      */
     private void retourMenuPrincipal() {
         enExecution = false;
-        System.out.println("↩️  Retour au menu principal...");
-    }
-    
-    /**
-     * Attend que l'utilisateur appuie sur Entrée
-     */
-    private void attendreEntree() {
-        System.out.println();
-        System.out.print("Appuyez sur Entrée pour continuer...");
-        scanner.nextLine();
+        ConsoleUtils.afficherInfo("Retour au menu principal...");
     }
     
     /**
