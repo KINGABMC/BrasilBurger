@@ -3,6 +3,7 @@ package com.brasilburger;
 import com.brasilburger.config.DatabaseConfig;
 import com.brasilburger.console.MenuPrincipal;
 import com.brasilburger.repository.DatabaseConnection;
+import com.brasilburger.repository.MenuItemRepository;
 import com.brasilburger.repository.ProduitRepository;
 
 public class Main {
@@ -31,19 +32,22 @@ public class Main {
             
             // Initialise les composants
             DatabaseConnection.getInstance();
-            ProduitRepository produitRepository = new ProduitRepository();
             
-            // Teste le repository
+            // Crée les repositories
+            ProduitRepository produitRepository = new ProduitRepository();
+            MenuItemRepository menuItemRepository = new MenuItemRepository();
+            
+            // Teste le repository produit
             if (!produitRepository.testConnection()) {
-                System.err.println("❌ ERREUR: Le repository ne peut pas accéder aux données");
+                System.err.println("❌ ERREUR: Le repository produit ne peut pas accéder aux données");
                 System.exit(1);
             }
             
             System.out.println("✅ Tous les composants initialisés avec succès");
             System.out.println();
             
-            // Lance le menu principal
-            MenuPrincipal menu = new MenuPrincipal(produitRepository);
+            // Lance le menu principal avec les deux repositories
+            MenuPrincipal menu = new MenuPrincipal(produitRepository, menuItemRepository);
             menu.afficher();
             
         } catch (Exception e) {
