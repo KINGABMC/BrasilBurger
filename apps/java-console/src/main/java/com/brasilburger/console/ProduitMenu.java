@@ -2,6 +2,7 @@ package com.brasilburger.console;
 
 import com.brasilburger.model.Produit;
 import com.brasilburger.model.TypeProduit;
+import com.brasilburger.service.ImageService;
 import com.brasilburger.service.JavaProduitService;
 
 import java.util.List;
@@ -184,7 +185,26 @@ public class ProduitMenu {
             String description = ConsoleUtils.lireStringOptionnelle("Description (optionnel): ");
             double prix = ConsoleUtils.lireDouble("Prix (en FCFA): ");
             
-            Produit produit = produitService.creerProduit(nom, type, description, prix);
+            // Gestion de l'image
+            String imageUrl = null;
+            System.out.print("Chemin de l'image (optionnel, ex: burger.jpg): ");
+            String imagePath = ConsoleUtils.lireStringOptionnelle("");
+            
+            if (imagePath != null && !imagePath.trim().isEmpty()) {
+                try {
+                    java.io.File imageFile = new java.io.File(imagePath.trim());
+                    ImageService imageService = new ImageService();
+                    imageUrl = imageService.uploadImage(imageFile);
+                    System.out.println("✅ Image uploadée!");
+                } catch (Exception e) {
+                    System.out.println("⚠️  Erreur avec l'image: " + e.getMessage());
+                    if (!ConsoleUtils.demanderConfirmation("Continuer sans image?")) {
+                        return;
+                    }
+                }
+            }
+            
+            Produit produit = produitService.creerProduit(nom, type, description, prix, imageUrl);
             ConsoleUtils.afficherSucces("Produit créé avec succès: " + produit);
             
         } catch (Exception e) {

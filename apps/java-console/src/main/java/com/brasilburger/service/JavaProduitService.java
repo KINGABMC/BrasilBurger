@@ -45,6 +45,30 @@ public class JavaProduitService {
     }
     
     /**
+     * Crée un nouveau produit AVEC image
+     */
+    public Produit creerProduit(String nom, TypeProduit type, String description, 
+                                Double prix, String imageUrl) {
+        // Appelle l'ancienne méthode
+        Produit produit = creerProduit(nom, type, description, prix);
+        
+        // Ajoute l'image si fournie
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            produit.setUrlImage(imageUrl.trim());
+            
+            // Met à jour dans la base pour sauvegarder l'URL
+            try {
+                return produitRepository.update(produit);
+            } catch (SQLException e) {
+                System.out.println("⚠️  Image sauvegardée mais erreur DB: " + e.getMessage());
+                return produit; // Retourne quand même le produit
+            }
+        }
+        
+        return produit;
+    }
+    
+    /**
      * Récupère un produit par son ID
      */
     public Produit obtenirProduitParId(Long id) {
