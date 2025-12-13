@@ -1,4 +1,4 @@
-package com.brasilbruger;
+package com.brasilburger;
 
 import static org.junit.Assert.assertTrue;
 
