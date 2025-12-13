@@ -1,187 +1,104 @@
 package com.brasilburger.console;
 
+import com.brasilburger.controller.JavaProduitController;
 import com.brasilburger.model.Produit;
 import com.brasilburger.model.TypeProduit;
-import com.brasilburger.service.ImageService;
-import com.brasilburger.service.JavaProduitService;
-
+import java.io.File;
 import java.util.List;
 
-/**
- * Menu de gestion des produits
- */
 public class ProduitMenu {
-    private final JavaProduitService produitService;
+    private final JavaProduitController controller;
     private boolean enExecution = true;
     
-    public ProduitMenu(JavaProduitService produitService) {
-        this.produitService = produitService;
+    public ProduitMenu(JavaProduitController controller) {
+        this.controller = controller;
     }
     
-    /**
-     * Affiche le menu des produits
-     */
     public void afficher() {
         while (enExecution) {
-            ConsoleUtils.afficherEnTete("Gestion des Produits");
-            afficherOptions();
-            
-            try {
-                int choix = ConsoleUtils.lireEntier("Votre choix (1-8): ");
-                traiterChoix(choix);
-            } catch (Exception e) {
-                ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
-                ConsoleUtils.attendreEntree();
-            }
+            afficherMenuPrincipal();
+            int choix = saisirChoixUtilisateur();
+            traiterChoix(choix);
         }
     }
     
-    /**
-     * Affiche les options du menu
-     */
-    private void afficherOptions() {
-    System.out.println();
-    System.out.println("1. 📋 Lister tous les produits");
-    System.out.println("2. 🔍 Rechercher un produit");
-    System.out.println("3. ➕ Créer un nouveau produit");
-    System.out.println("4. ✏️  Modifier un produit");
-    System.out.println("5. 📁 Archiver un produit");
-    System.out.println("6. 📤 Restaurer un produit archivé");
-    System.out.println("7. 🗑️  Supprimer définitivement");
-    System.out.println("8. 🏷️  Lister par type (BURGER/MENU/COMPLEMENT)");  // <-- NOUVEAU
-    System.out.println("9. 📊 Voir les produits archivés");  // <-- NOUVEAU
-    System.out.println("10. ↩️  Retour au menu principal");  // <-- CHANGÉ
-    System.out.println();
-   }
-    
-    /**
-     * Traite le choix de l'utilisateur
-     */
-    private void traiterChoix(int choix) {
-        switch (choix) {
-            case 1:
-                listerTousProduits();
-                break;
-                
-            case 2:
-                rechercherProduit();
-                break;
-                
-            case 3:
-                creerProduit();
-                break;
-                
-            case 4:
-                modifierProduit();
-                break;
-                
-            case 5:
-                archiverProduit();
-                break;
-                
-            case 6:
-                restaurerProduit();
-                break;
-                
-            case 7:
-                supprimerProduit();
-                break;
-    
-            case 8:
-                 listerProduitsParType();
-                 break;
-    
-            case 9:
-                listerProduitsArchives();
-                break;
-                
-            case 10:
-                 retourMenuPrincipal();
-                  break;
-                
-            default:
-                ConsoleUtils.afficherAvertissement("Choix invalide. Veuillez entrer un nombre entre 1 et 8.");
-                ConsoleUtils.attendreEntree();
-        }
+    private void afficherMenuPrincipal() {
+        ConsoleUtils.afficherEnTete("Gestion des Produits");
+        System.out.println();
+        System.out.println("1. 📋 Lister tous les produits");
+        System.out.println("2. 🔍 Rechercher un produit");
+        System.out.println("3. ➕ Créer un nouveau produit");
+        System.out.println("4. ✏️  Modifier un produit");
+        System.out.println("5. 📁 Archiver un produit");
+        System.out.println("6. 📤 Restaurer un produit archivé");
+        System.out.println("7. 🗑️  Supprimer définitivement");
+        System.out.println("8. 🏷️  Lister par type");
+        System.out.println("9. 📊 Produits archivés");
+        System.out.println("10. ↩️  Retour au menu principal");
+        System.out.println();
     }
     
-    /**
-     * Liste tous les produits
-     */
-    private void listerTousProduits() {
-        ConsoleUtils.afficherEnTete("Liste des Produits");
-        
+    private int saisirChoixUtilisateur() {
         try {
-            List<Produit> produits = produitService.listerTousProduits();
-            
-            if (produits.isEmpty()) {
-                System.out.println("📭 Aucun produit trouvé.");
-            } else {
-                System.out.println("📦 Total: " + produits.size() + " produit(s)");
-                System.out.println();
-                
-                for (Produit produit : produits) {
-                    String statut = produit.getEstArchive() ? "📁 ARCHIVÉ" : 
-                                   (produit.getDisponible() ? "✅ DISPONIBLE" : "❌ INDISPONIBLE");
-                    
-                    System.out.printf("[%d] %s - %s - %.2f FCFA - %s%n",
-                        produit.getId(),
-                        produit.getNom(),
-                        produit.getType().getValeurDB(),
-                        produit.getPrix(),
-                        statut);
-                    
-                    if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
-                        System.out.println("   📝 " + produit.getDescription());
-                    }
-                    System.out.println();
-                }
-            }
+            return ConsoleUtils.lireEntier("Votre choix (1-10): ");
         } catch (Exception e) {
             ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
+            return -1;
         }
+    }
+    
+    private void traiterChoix(int choix) {
+        switch (choix) {
+            case 1: afficherListeProduits(controller.listerTousProduits(), "Liste des Produits"); break;
+            case 2: rechercherProduit(); break;
+            case 3: creerProduit(); break;
+            case 4: modifierProduit(); break;
+            case 5: archiverProduit(); break;
+            case 6: restaurerProduit(); break;
+            case 7: supprimerProduit(); break;
+            case 8: listerParType(); break;
+            case 9: afficherListeProduits(controller.listerProduitsArchives(), "Produits Archivés"); break;
+            case 10: enExecution = false; ConsoleUtils.afficherInfo("Retour au menu principal..."); break;
+            default: ConsoleUtils.afficherAvertissement("Choix invalide."); ConsoleUtils.attendreEntree();
+        }
+    }
+    
+    private void afficherListeProduits(List<Produit> produits, String titre) {
+        ConsoleUtils.afficherEnTete(titre);
         
+        if (produits.isEmpty()) {
+            System.out.println("📭 Aucun produit trouvé.");
+        } else {
+            System.out.println("📦 Total: " + produits.size() + " produit(s)");
+            System.out.println();
+            
+            for (Produit produit : produits) {
+                String statut = produit.getEstArchive() ? "📁 ARCHIVÉ" : 
+                               (produit.getDisponible() ? "✅ DISPONIBLE" : "❌ INDISPONIBLE");
+                
+                System.out.printf("[%d] %s - %s - %.2f FCFA - %s%n",
+                    produit.getId(), produit.getNom(), produit.getType().getValeurDB(),
+                    produit.getPrix(), statut);
+                
+                if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
+                    System.out.println("   📝 " + produit.getDescription());
+                }
+                if (produit.getUrlImage() != null) {
+                    System.out.println("   🖼️  Image: OUI");
+                }
+                System.out.println();
+            }
+        }
         ConsoleUtils.attendreEntree();
     }
     
-    /**
-     * Recherche un produit par nom
-     */
     private void rechercherProduit() {
         System.out.println();
         String recherche = ConsoleUtils.lireStringObligatoire("🔍 Entrez le nom ou une partie du nom à rechercher: ");
-        
-        try {
-            List<Produit> resultats = produitService.rechercherProduitsParNom(recherche);
-            
-            System.out.println();
-            ConsoleUtils.afficherSousTitre("Résultats pour \"" + recherche + "\"");
-            System.out.println();
-            
-            if (resultats.isEmpty()) {
-                System.out.println("🔍 Aucun produit trouvé.");
-            } else {
-                ConsoleUtils.afficherInfo(resultats.size() + " produit(s) trouvé(s):");
-                System.out.println();
-                
-                for (Produit produit : resultats) {
-                    System.out.printf("• [%d] %s - %s - %.2f FCFA%n",
-                        produit.getId(),
-                        produit.getNom(),
-                        produit.getType().getValeurDB(),
-                        produit.getPrix());
-                }
-            }
-        } catch (Exception e) {
-            ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
-        }
-        
-        ConsoleUtils.attendreEntree();
+        List<Produit> resultats = controller.rechercherProduits(recherche);
+        afficherListeProduits(resultats, "Résultats pour \"" + recherche + "\"");
     }
     
-    /**
-     * Crée un nouveau produit
-     */
     private void creerProduit() {
         ConsoleUtils.afficherEnTete("Création d'un Produit");
         
@@ -195,44 +112,30 @@ public class ProduitMenu {
             String description = ConsoleUtils.lireStringOptionnelle("Description (optionnel): ");
             double prix = ConsoleUtils.lireDouble("Prix (en FCFA): ");
             
-            // Gestion de l'image
-            String imageUrl = null;
-            System.out.print("Chemin de l'image (optionnel, ex: burger.jpg): ");
+            File imageFile = null;
+            System.out.print("Chemin de l'image (optionnel): ");
             String imagePath = ConsoleUtils.lireStringOptionnelle("");
             
             if (imagePath != null && !imagePath.trim().isEmpty()) {
-                try {
-                    java.io.File imageFile = new java.io.File(imagePath.trim());
-                    ImageService imageService = new ImageService();
-                    imageUrl = imageService.uploadImage(imageFile);
-                    System.out.println("✅ Image uploadée!");
-                } catch (Exception e) {
-                    System.out.println("⚠️  Erreur avec l'image: " + e.getMessage());
-                    if (!ConsoleUtils.demanderConfirmation("Continuer sans image?")) {
-                        return;
-                    }
-                }
+                imageFile = new File(imagePath.trim());
             }
             
-            Produit produit = produitService.creerProduit(nom, type, description, prix, imageUrl);
-            ConsoleUtils.afficherSucces("Produit créé avec succès: " + produit);
+            Produit produit = controller.creerProduit(nom, type, description, prix, imageFile);
+            ConsoleUtils.afficherSucces("✅ Produit créé avec succès: " + produit);
             
         } catch (Exception e) {
-            ConsoleUtils.afficherErreur("Erreur lors de la création: " + e.getMessage());
+            ConsoleUtils.afficherErreur("❌ Erreur lors de la création: " + e.getMessage());
         }
         
         ConsoleUtils.attendreEntree();
     }
     
-    /**
-     * Modifie un produit existant
-     */
     private void modifierProduit() {
         ConsoleUtils.afficherEnTete("Modification d'un Produit");
         
         try {
             long id = ConsoleUtils.lireEntier("Entrez l'ID du produit à modifier: ");
-            Produit produit = produitService.obtenirProduitParId(id);
+            Produit produit = controller.obtenirProduit(id);
             
             System.out.println();
             ConsoleUtils.afficherInfo("Produit actuel: " + produit);
@@ -250,19 +153,16 @@ public class ProduitMenu {
             String prixStr = ConsoleUtils.lireStringOptionnelle("");
             Double prix = prixStr == null ? null : Double.parseDouble(prixStr);
             
-            Produit produitModifie = produitService.modifierProduit(id, nom, type, description, prix);
-            ConsoleUtils.afficherSucces("Produit modifié avec succès: " + produitModifie);
+            Produit produitModifie = controller.modifierProduit(id, nom, type, description, prix);
+            ConsoleUtils.afficherSucces("✅ Produit modifié avec succès: " + produitModifie);
             
         } catch (Exception e) {
-            ConsoleUtils.afficherErreur("Erreur lors de la modification: " + e.getMessage());
+            ConsoleUtils.afficherErreur("❌ Erreur lors de la modification: " + e.getMessage());
         }
         
         ConsoleUtils.attendreEntree();
     }
     
-    /**
-     * Archive un produit
-     */
     private void archiverProduit() {
         ConsoleUtils.afficherEnTete("Archivage d'un Produit");
         
@@ -270,36 +170,30 @@ public class ProduitMenu {
             long id = ConsoleUtils.lireEntier("Entrez l'ID du produit à archiver: ");
             
             if (ConsoleUtils.demanderConfirmation("Êtes-vous sûr de vouloir archiver ce produit?")) {
-                produitService.archiverProduit(id);
+                controller.archiverProduit(id);
             } else {
                 ConsoleUtils.afficherInfo("Archivage annulé.");
             }
         } catch (Exception e) {
-            ConsoleUtils.afficherErreur("Erreur lors de l'archivage: " + e.getMessage());
+            ConsoleUtils.afficherErreur("❌ Erreur lors de l'archivage: " + e.getMessage());
         }
         
         ConsoleUtils.attendreEntree();
     }
     
-    /**
-     * Restaure un produit archivé
-     */
     private void restaurerProduit() {
         ConsoleUtils.afficherEnTete("Restauration d'un Produit Archivé");
         
         try {
             long id = ConsoleUtils.lireEntier("Entrez l'ID du produit à restaurer: ");
-            produitService.restaurerProduit(id);
+            controller.restaurerProduit(id);
         } catch (Exception e) {
-            ConsoleUtils.afficherErreur("Erreur lors de la restauration: " + e.getMessage());
+            ConsoleUtils.afficherErreur("❌ Erreur lors de la restauration: " + e.getMessage());
         }
         
         ConsoleUtils.attendreEntree();
     }
     
-    /**
-     * Supprime définitivement un produit
-     */
     private void supprimerProduit() {
         ConsoleUtils.afficherEnTete("Suppression Définitive d'un Produit");
         
@@ -313,105 +207,34 @@ public class ProduitMenu {
             String confirmation = ConsoleUtils.lireStringObligatoire("");
             
             if (confirmation.equals("SUPPRIMER")) {
-                boolean supprime = produitService.supprimerProduitDefinitivement(id);
+                boolean supprime = controller.supprimerProduit(id);
                 if (supprime) {
-                    ConsoleUtils.afficherSucces("Produit supprimé définitivement.");
+                    ConsoleUtils.afficherSucces("✅ Produit supprimé définitivement.");
                 }
             } else {
                 ConsoleUtils.afficherInfo("Suppression annulée.");
             }
         } catch (Exception e) {
-            ConsoleUtils.afficherErreur("Erreur lors de la suppression: " + e.getMessage());
+            ConsoleUtils.afficherErreur("❌ Erreur lors de la suppression: " + e.getMessage());
         }
         
         ConsoleUtils.attendreEntree();
     }
     
-
-/**
- * Liste les produits par type
- */
-private void listerProduitsParType() {
-    ConsoleUtils.afficherEnTete("Produits par Type");
-    
-    System.out.println("Types disponibles: " + TypeProduit.getTypesDisponibles());
-    String typeStr = ConsoleUtils.lireStringObligatoire("Entrez le type (BURGER/MENU/COMPLEMENT): ").toUpperCase();
-    
-    try {
-        TypeProduit type = TypeProduit.depuisValeurDB(typeStr);
-        List<Produit> produits = produitService.listerProduitsParTypeRepository(type);
+    private void listerParType() {
+        ConsoleUtils.afficherEnTete("Produits par Type");
         
-        if (produits.isEmpty()) {
-            System.out.println("📭 Aucun produit trouvé pour le type: " + type);
-        } else {
-            System.out.println("📦 Total: " + produits.size() + " produit(s) de type " + type);
-            System.out.println();
+        try {
+            System.out.println("Types disponibles: " + TypeProduit.getTypesDisponibles());
+            String typeStr = ConsoleUtils.lireStringObligatoire("Entrez le type: ").toUpperCase();
+            TypeProduit type = TypeProduit.depuisValeurDB(typeStr);
             
-            for (Produit produit : produits) {
-                System.out.printf("• [%d] %s - %.2f FCFA%n",
-                    produit.getId(),
-                    produit.getNom(),
-                    produit.getPrix());
-                
-                if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
-                    System.out.println("  📝 " + produit.getDescription());
-                }
-            }
-        }
-    } catch (Exception e) {
-        ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
-    }
-    
-    ConsoleUtils.attendreEntree();
-}
-
-/**
- * Liste les produits archivés
- */
-private void listerProduitsArchives() {
-    ConsoleUtils.afficherEnTete("Produits Archivés");
-    
-    try {
-        List<Produit> produits = produitService.listerProduitsArchives();
-        
-        if (produits.isEmpty()) {
-            System.out.println("📭 Aucun produit archivé.");
-        } else {
-            System.out.println("📦 Total: " + produits.size() + " produit(s) archivé(s)");
-            System.out.println();
+            List<Produit> produits = controller.listerProduitsParType(type);
+            afficherListeProduits(produits, "Produits de type " + type);
             
-            for (Produit produit : produits) {
-                System.out.printf("• [%d] %s - %s - %.2f FCFA%n",
-                    produit.getId(),
-                    produit.getNom(),
-                    produit.getType().getValeurDB(),
-                    produit.getPrix());
-                
-                if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
-                    System.out.println("  📝 " + produit.getDescription());
-                }
-            }
+        } catch (Exception e) {
+            ConsoleUtils.afficherErreur("❌ Erreur: " + e.getMessage());
+            ConsoleUtils.attendreEntree();
         }
-    } catch (Exception e) {
-        ConsoleUtils.afficherErreur("Erreur: " + e.getMessage());
-    }
-    
-    ConsoleUtils.attendreEntree();
-}
-
-
-    /**
-     * Retourne au menu principal
-     */
-    private void retourMenuPrincipal() {
-        enExecution = false;
-        ConsoleUtils.afficherInfo("Retour au menu principal...");
-    }
-    
-    /**
-     * Getter pour le service produit (utilisé par MenuPrincipal)
-     */
-    public JavaProduitService getProduitService() {
-        return produitService;
     }
 }

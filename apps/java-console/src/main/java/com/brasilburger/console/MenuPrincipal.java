@@ -1,23 +1,22 @@
 package com.brasilburger.console;
 
+import com.brasilburger.controller.JavaProduitController;
 import com.brasilburger.repository.ProduitRepository;
+import com.brasilburger.service.ImageService;
 import com.brasilburger.service.JavaProduitService;
 
-/**
- * Menu principal de l'application console
- */
 public class MenuPrincipal {
     private final ProduitMenu produitMenu;
+    private final JavaProduitController controller;
     private boolean enExecution = true;
     
     public MenuPrincipal(ProduitRepository produitRepository) {
         JavaProduitService produitService = new JavaProduitService(produitRepository);
-        this.produitMenu = new ProduitMenu(produitService);
+        ImageService imageService = new ImageService();
+        this.controller = new JavaProduitController(produitService, imageService);
+        this.produitMenu = new ProduitMenu(controller);
     }
     
-    /**
-     * Affiche le menu principal et gère la navigation
-     */
     public void afficher() {
         while (enExecution) {
             ConsoleUtils.afficherEnTete("Menu Principal - Brasil Burger");
@@ -33,9 +32,6 @@ public class MenuPrincipal {
         }
     }
     
-    /**
-     * Affiche les options du menu
-     */
     private void afficherOptions() {
         System.out.println();
         System.out.println("1. 🍔 Gérer les produits");
@@ -45,47 +41,32 @@ public class MenuPrincipal {
         System.out.println();
     }
     
-    /**
-     * Traite le choix de l'utilisateur
-     */
     private void traiterChoix(int choix) {
         switch (choix) {
-            case 1:
-                produitMenu.afficher();
-                break;
-                
-            case 2:
-                afficherStatistiques();
-                break;
-                
-            case 3:
-                afficherConfiguration();
-                break;
-                
-            case 4:
-                quitter();
-                break;
-                
+            case 1: produitMenu.afficher(); break;
+            case 2: afficherStatistiques(); break;
+            case 3: afficherConfiguration(); break;
+            case 4: quitter(); break;
             default:
-                ConsoleUtils.afficherAvertissement("Choix invalide. Veuillez entrer un nombre entre 1 et 4.");
+                ConsoleUtils.afficherAvertissement("Choix invalide (1-4).");
                 ConsoleUtils.attendreEntree();
         }
     }
     
-    /**
-     * Affiche les statistiques de l'application
-     */
     private void afficherStatistiques() {
         ConsoleUtils.afficherEnTete("Statistiques");
         
         try {
-            int totalProduits = produitMenu.getProduitService().compterProduits();
-            int produitsDisponibles = produitMenu.getProduitService().compterProduitsDisponibles();
+            int totalProduits = controller.compterProduits();
+            int produitsDisponibles = controller.compterProduitsDisponibles();
+            int produitsArchives = controller.listerProduitsArchives().size();
             
             System.out.println("📊 Statistiques des produits:");
             System.out.println("   • Total produits: " + totalProduits);
             System.out.println("   • Produits disponibles: " + produitsDisponibles);
-            System.out.println("   • Produits archivés: " + (totalProduits - produitsDisponibles));
+            System.out.println("   • Produits archivés: " + produitsArchives);
+            System.out.println("   • Taux de disponibilité: " + 
+                (totalProduits > 0 ? String.format("%.1f%%", (produitsDisponibles * 100.0 / totalProduits)) : "0%"));
             
         } catch (Exception e) {
             ConsoleUtils.afficherErreur("Impossible de récupérer les statistiques: " + e.getMessage());
@@ -94,9 +75,6 @@ public class MenuPrincipal {
         ConsoleUtils.attendreEntree();
     }
     
-    /**
-     * Affiche la configuration actuelle
-     */
     private void afficherConfiguration() {
         ConsoleUtils.afficherEnTete("Configuration");
         
@@ -108,13 +86,15 @@ public class MenuPrincipal {
         System.out.println("• Les produits (burgers, menus, compléments)");
         System.out.println("• L'archivage et restauration des produits");
         System.out.println("• Les statistiques de vente");
+        System.out.println("• Upload d'images via Cloudinary");
+        
+        System.out.println();
+        System.out.println("🔍 Test de connexion:");
+        System.out.println("   • Base de données: " + (controller.testerConnexion() ? "✅ Connecté" : "❌ Erreur"));
         
         ConsoleUtils.attendreEntree();
     }
     
-    /**
-     * Quitte l'application
-     */
     private void quitter() {
         System.out.println();
         if (ConsoleUtils.demanderConfirmation("Êtes-vous sûr de vouloir quitter?")) {
