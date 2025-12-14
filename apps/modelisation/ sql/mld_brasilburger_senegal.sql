@@ -287,9 +287,9 @@ INSERT INTO Client (nom, prenom, telephone, email, mot_de_passe, est_actif) VALU
 
 -- Livreurs
 INSERT INTO Livreur (nom, telephone, est_disponible) VALUES
-('Sow', 'Oumar', '+221 77 111 22 33', TRUE),
-('Diallo', 'Ibrahima', '+221 78 222 33 44', TRUE),
-('Ba', 'Fatou', '+221 76 333 44 55', FALSE);
+('Oumar Sow', '+221 77 111 22 33', TRUE),
+('Ibrahima Diallo', '+221 78 222 33 44', TRUE),
+('Fatou Ba', '+221 76 333 44 55', FALSE);
 
 -- ============================================
 -- PRODUITS RÉELS - MENU BRASIL BURGER SÉNÉGAL
