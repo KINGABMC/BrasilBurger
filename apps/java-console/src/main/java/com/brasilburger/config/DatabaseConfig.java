@@ -23,26 +23,31 @@ public class DatabaseConfig {
      * Charge les propriétés depuis le fichier application.properties
      */
     private static void loadProperties() {
-        try (InputStream input = DatabaseConfig.class.getClassLoader()
-                .getResourceAsStream(PROPERTIES_FILE)) {
-            
-            if (input != null) {
-                properties.load(input);
-            } else {
-                System.out.println("⚠️  Fichier " + PROPERTIES_FILE + " non trouvé, utilisation des valeurs par défaut");
-                setDefaultProperties();
-            }
-        } catch (IOException e) {
-            System.err.println("Erreur lors du chargement des propriétés: " + e.getMessage());
+    System.out.println("🔍 DEBUG: Chargement " + PROPERTIES_FILE);
+    
+    try (InputStream input = DatabaseConfig.class.getClassLoader()
+            .getResourceAsStream(PROPERTIES_FILE)) {
+        
+        if (input != null) {
+            System.out.println("✅ Fichier trouvé");
+            properties.load(input);
+            System.out.println("📄 db.url = " + properties.getProperty("db.url"));
+            System.out.println("📄 db.username = " + properties.getProperty("db.username"));
+        } else {
+            System.out.println("❌ Fichier NON TROUVÉ");
             setDefaultProperties();
         }
+    } catch (IOException e) {
+        System.err.println("Erreur: " + e.getMessage());
+        setDefaultProperties();
     }
+}
     
     /**
      * Définit les propriétés par défaut pour le développement
      */
     private static void setDefaultProperties() {
-        properties.setProperty("db.url", "jdbc:postgresql://localhost:5432/brasilburger_neondb");
+        properties.setProperty("db.url", "jdbc:postgresql://localhost:5432/brasilburger_local");
         properties.setProperty("db.username", "postgres");
         properties.setProperty("db.password", "postgres");
         properties.setProperty("db.pool.size", "5");
@@ -94,20 +99,29 @@ public class DatabaseConfig {
     /**
      * Crée une connexion à la base de données
      */
-    public static Connection getConnection() throws SQLException {
-        String url = getDatabaseUrl();
-        System.out.println("🔗 Tentative de connexion à: " + maskPassword(url));
-        
-        try {
-            Connection conn = DriverManager.getConnection(url);
-            System.out.println("✅ Connexion à la base de données établie");
-            return conn;
-        } catch (SQLException e) {
-            System.err.println("❌ Échec de connexion à la base de données: " + e.getMessage());
-            throw e;
-        }
+    // In your DatabaseConfig.java file, replace the getConnection() method
+public static Connection getConnection() throws SQLException {
+    String url = getDatabaseUrl();
+    System.out.println("🔗 Tentative de connexion à: " + maskPassword(url));
+
+    // Get the username and password from properties
+    String username = getUsername();
+    String password = getPassword();
+
+    Properties props = new Properties();
+    props.setProperty("user", username);
+    props.setProperty("password", password);
+
+    try {
+        // Connect with the username and password properties
+        Connection conn = DriverManager.getConnection(url, props);
+        System.out.println("✅ Connexion à la base de données établie");
+        return conn;
+    } catch (SQLException e) {
+        System.err.println("❌ Échec de connexion à la base de données: " + e.getMessage());
+        throw e;
     }
-    
+}
     /**
      * Teste la connexion à la base de données
      */

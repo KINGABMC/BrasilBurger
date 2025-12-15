@@ -13,7 +13,7 @@ public class MenuItemRepository {
     }
     
     public MenuItem addToMenu(MenuItem menuItem) throws SQLException {
-        String sql = "INSERT INTO menu_item (menu_id, produit_id, quantite, ordre) VALUES (?, ?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO menuitem (menu_id, produit_id, quantite, ordre) VALUES (?, ?, ?, ?) RETURNING id";
         
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -35,7 +35,7 @@ public class MenuItemRepository {
     
     public List<MenuItem> getMenuItems(Long menuId) throws SQLException {
         List<MenuItem> items = new ArrayList<>();
-        String sql = "SELECT * FROM menu_item WHERE menu_id = ? ORDER BY ordre";
+        String sql = "SELECT * FROM menuitem WHERE menu_id = ? ORDER BY ordre";
         
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -58,7 +58,7 @@ public class MenuItemRepository {
     }
     
     public boolean removeFromMenu(Long menuItemId) throws SQLException {
-        String sql = "DELETE FROM menu_item WHERE id = ?";
+        String sql = "DELETE FROM menuitem WHERE id = ?";
         
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

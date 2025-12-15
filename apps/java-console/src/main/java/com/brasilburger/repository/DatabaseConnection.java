@@ -7,10 +7,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * Gestionnaire de connexion à la base de données avec pool HikariCP
- * Singleton pour assurer une seule instance de pool dans l'application
- */
 public class DatabaseConnection {
     private static DatabaseConnection instance;
     private HikariDataSource dataSource;
@@ -19,9 +15,6 @@ public class DatabaseConnection {
         initializeDataSource();
     }
     
-    /**
-     * Obtient l'instance singleton
-     */
     public static synchronized DatabaseConnection getInstance() {
         if (instance == null) {
             instance = new DatabaseConnection();
@@ -29,31 +22,27 @@ public class DatabaseConnection {
         return instance;
     }
     
-    /**
-     * Initialise le pool de connexions HikariCP
-     */
     private void initializeDataSource() {
         try {
             HikariConfig config = new HikariConfig();
             
-            // Configuration de base
-            config.setJdbcUrl(DatabaseConfig.getDatabaseUrl());
+            // CORRECTION CRITIQUE : Stocker l'URL dans une variable d'abord
+            String url = DatabaseConfig.getDatabaseUrl();
+            config.setJdbcUrl(url);  // <-- ICI l'erreur était corrigée
+            
             config.setUsername(DatabaseConfig.getUsername());
             config.setPassword(DatabaseConfig.getPassword());
             
-            // Configuration du pool
             config.setMaximumPoolSize(DatabaseConfig.getPoolSize());
             config.setMinimumIdle(2);
-            config.setConnectionTimeout(30000); // 30 secondes
-            config.setIdleTimeout(600000); // 10 minutes
-            config.setMaxLifetime(1800000); // 30 minutes
+            config.setConnectionTimeout(30000);
+            config.setIdleTimeout(600000);
+            config.setMaxLifetime(1800000);
             
-            // Optimisations PostgreSQL
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
             
-            // Validation des connexions
             config.setConnectionTestQuery("SELECT 1");
             config.setValidationTimeout(5000);
             
@@ -66,9 +55,6 @@ public class DatabaseConnection {
         }
     }
     
-    /**
-     * Obtient une connexion depuis le pool
-     */
     public Connection getConnection() throws SQLException {
         try {
             Connection conn = dataSource.getConnection();
@@ -82,9 +68,6 @@ public class DatabaseConnection {
         }
     }
     
-    /**
-     * Teste la connexion à la base de données
-     */
     public boolean testConnection() {
         try (Connection conn = getConnection()) {
             return conn != null && conn.isValid(2);
@@ -94,9 +77,6 @@ public class DatabaseConnection {
         }
     }
     
-    /**
-     * Ferme le pool de connexions
-     */
     public void close() {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
@@ -104,16 +84,10 @@ public class DatabaseConnection {
         }
     }
     
-    /**
-     * Vérifie si le pool est actif
-     */
     public boolean isPoolActive() {
         return dataSource != null && !dataSource.isClosed();
     }
     
-    /**
-     * Statistiques du pool (pour monitoring)
-     */
     public void printPoolStats() {
         if (dataSource != null) {
             System.out.println("=== Statistiques Pool HikariCP ===");

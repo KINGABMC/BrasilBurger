@@ -4,9 +4,11 @@ services:
     env: java
     region: frankfurt
     plan: free
-    buildCommand: mvn clean package -DskipTests
-    startCommand: java -jar target/java-console-1.0-SNAPSHOT.jar
+    buildCommand: mvn clean compile
+    startCommand: mvn exec:java -Dexec.mainClass="com.brasilburger.Main"
     envVars:
+      - key: JAVA_VERSION
+        value: "17"
       - key: NEONDB_CONNECTION_STRING
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
@@ -15,5 +17,3 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: JAVA_OPTS
-        value: "-Xmx256m"

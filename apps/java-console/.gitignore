@@ -40,3 +40,5 @@ log/
 # Temp
 tmp/
 temp/
+#connectionDB et cloudinary mode 
+application.properties

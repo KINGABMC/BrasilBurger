@@ -1,10 +1,10 @@
 package com.brasilburger;
 
 import com.brasilburger.config.DatabaseConfig;
-import com.brasilburger.console.MenuPrincipal;
 import com.brasilburger.repository.DatabaseConnection;
 import com.brasilburger.repository.MenuItemRepository;
 import com.brasilburger.repository.ProduitRepository;
+import com.brasilburger.console.MenuPrincipal;
 
 public class Main {
     public static void main(String[] args) {
@@ -14,10 +14,8 @@ public class Main {
         System.out.println();
         
         try {
-            // Affiche la configuration
             DatabaseConfig.printConfig();
             
-            // Teste la connexion à la base de données
             if (!DatabaseConfig.testConnection()) {
                 System.err.println("❌ ERREUR: Impossible de se connecter à la base de données");
                 System.err.println("Vérifiez:");
@@ -30,14 +28,11 @@ public class Main {
             System.out.println("✅ Connexion à la base de données réussie");
             System.out.println();
             
-            // Initialise les composants
             DatabaseConnection.getInstance();
             
-            // Crée les repositories
             ProduitRepository produitRepository = new ProduitRepository();
             MenuItemRepository menuItemRepository = new MenuItemRepository();
             
-            // Teste le repository produit
             if (!produitRepository.testConnection()) {
                 System.err.println("❌ ERREUR: Le repository produit ne peut pas accéder aux données");
                 System.exit(1);
@@ -46,7 +41,6 @@ public class Main {
             System.out.println("✅ Tous les composants initialisés avec succès");
             System.out.println();
             
-            // Lance le menu principal avec les deux repositories
             MenuPrincipal menu = new MenuPrincipal(produitRepository, menuItemRepository);
             menu.afficher();
             
