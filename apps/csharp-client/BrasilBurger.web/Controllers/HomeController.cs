@@ -1,31 +1,59 @@
-using System.Diagnostics;
+using BrasilBurger.Web.Data;
+using BrasilBurger.Web.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
-using BrasilBurger.web.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace BrasilBurger.web.Controllers;
-
-public class HomeController : Controller
+namespace BrasilBurger.Web.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public class HomeController : Controller
     {
-        _logger = logger;
-    }
+        private readonly BrasilBurgerContext _context;
+        private readonly ILogger<HomeController> _logger;
 
-    public IActionResult Index()
-    {
-        return View();
-    }
+        public HomeController(BrasilBurgerContext context, ILogger<HomeController> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                // UTILISE LES NOMS EN MINUSCULES comme dans ton DbContext !
+                var produitCount = await _context.produit.CountAsync();
+                var clientCount = await _context.client.CountAsync();
+                
+                ViewBag.ProduitCount = produitCount;
+                ViewBag.ClientCount = clientCount;
+                ViewBag.DatabaseStatus = "Connected ✅";
+                
+                _logger.LogInformation($"Home page loaded - Products: {produitCount}, Clients: {clientCount}");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.DatabaseStatus = "Disconnected ❌";
+                ViewBag.ErrorMessage = ex.Message;
+                _logger.LogError(ex, "Database connection failed");
+            }
+            
+            return View(); // ← Doit rendre la vue Index.cshtml
+        }
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        public async Task<IActionResult> TestDB()
+        {
+            try
+            {
+                await _context.Database.OpenConnectionAsync();
+                var canConnect = await _context.Database.CanConnectAsync();
+                var productCount = await _context.produit.CountAsync();
+                
+                return Content($"OpenConnection: OK\nCanConnect: {canConnect}\nProducts: {productCount}");
+            }
+            catch (Exception ex)
+            {
+                return Content($"ERREUR: {ex.ToString()}");
+            }
+        }
     }
 }
