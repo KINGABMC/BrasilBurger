@@ -1,18 +1,17 @@
 using BrasilBurger.Web.Data;
-using BrasilBurger.Web.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-// Logging
+// Logging (Render-friendly)
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-// Services
+// MVC
 builder.Services.AddControllersWithViews();
 
-// Database
+// Database (NeonDB)
 var connectionString = configuration.GetConnectionString("NeonDB");
 Console.WriteLine("🔗 Configuration NeonDB chargée");
 
@@ -42,7 +41,7 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// ⚠️ PAS de UseHttpsRedirection sur Render
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
@@ -53,47 +52,30 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Vérification DB SIMPLE et SÛRE
-Console.WriteLine("🔍 Test connexion base de données...");
-
-try
+// 🔍 Test DB sécurisé
+await using (var scope = app.Services.CreateAsyncScope())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<BrasilBurgerContext>();
-    
-    // Test 1: Simple count
-    var produits = await db.produit.CountAsync();  // Note: minuscule maintenant
-    var clients = await db.client.CountAsync();    // Note: minuscule maintenant
-    
-    Console.WriteLine($"✅ DB OK - {produits} produits, {clients} clients");
-    
-    // Test 2: Récupération safe
-    var topProduits = await db.produit
-        .Where(p => p.Disponible == true)
-        .Take(3)
-        .Select(p => new { p.Nom, p.Prix, p.Type })
-        .ToListAsync();
-    
-    if (topProduits.Any())
+    try
     {
-        Console.WriteLine("🍔 Exemples produits:");
-        foreach (var p in topProduits)
-        {
-            Console.WriteLine($"   • {p.Nom} - {p.Prix:F0} FCFA");
-        }
+        var db = scope.ServiceProvider.GetRequiredService<BrasilBurgerContext>();
+
+        var produits = await db.produit.CountAsync();
+        var clients = await db.client.CountAsync();
+
+        Console.WriteLine($"✅ DB OK - {produits} produits, {clients} clients");
     }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"⚠️ Note: {ex.Message.Split(':')[0]}");
-    Console.WriteLine("   (L'application continue de fonctionner)");
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ DB warning: {ex.Message}");
+        Console.WriteLine("   (L'application continue)");
+    }
 }
 
 // Info démarrage
-Console.WriteLine($"🚀 Brasil Burger démarré");
-Console.WriteLine($"🌐 {app.Environment.EnvironmentName}");
-Console.WriteLine($"💰 {configuration["AppSettings:DefaultCurrency"] ?? "FCFA"}");
+Console.WriteLine("🚀 Brasil Burger démarré");
+Console.WriteLine($"🌐 Environnement: {app.Environment.EnvironmentName}");
 Console.WriteLine($"📅 {DateTime.Now:HH:mm}");
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+// Port Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
 app.Run($"http://0.0.0.0:{port}");

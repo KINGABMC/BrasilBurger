@@ -31,3 +31,4 @@ bld/
 
 # Visual Studio Code
 .vscode/
+appsettings.Development.json
