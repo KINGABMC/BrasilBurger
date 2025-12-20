@@ -95,4 +95,5 @@ Console.WriteLine($"🌐 {app.Environment.EnvironmentName}");
 Console.WriteLine($"💰 {configuration["AppSettings:DefaultCurrency"] ?? "FCFA"}");
 Console.WriteLine($"📅 {DateTime.Now:HH:mm}");
 
-app.Run();
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");
