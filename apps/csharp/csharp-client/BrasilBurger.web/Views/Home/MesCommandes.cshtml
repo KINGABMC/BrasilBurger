@@ -1,0 +1,137 @@
+@model List<BrasilBurger.Web.Models.Entities.Commande>
+@{
+    ViewData["Title"] = "Mes commandes";
+    ViewBag.PanierCount = ViewBag.PanierCount ?? 0;
+}
+
+<nav class="navbar navbar-dark" style="background: linear-gradient(135deg, #002776 0%, #009739 100%);">
+    <div class="container">
+        <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+            <span class="text-warning">🍔 BRASIL</span> BURGER
+        </a>
+        <span class="text-white">Mes commandes</span>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <h2 class="mb-4">📋 Mes commandes</h2>
+    
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Vous n'avez pas encore passé de commande.
+            <a asp-controller="Home" asp-action="Index" class="alert-link">Découvrez nos produits !</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Numéro</th>
+                        <th>Date</th>
+                        <th>Mode</th>
+                        <th class="text-end">Montant</th>
+                        <th>Statut</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var commande in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@commande.Numero</strong>
+                                @if (!string.IsNullOrEmpty(commande.CodeSuivi))
+                                {
+                                    <br><small class="text-muted">Suivi: @commande.CodeSuivi</small>
+                                }
+                            </td>
+                            <td>@commande.DateCommande?.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @(commande.ModeConsommation == "SUR_PLACE" ? "Sur place" :
+                                  commande.ModeConsommation == "EMPORTER" ? "À emporter" :
+                                  commande.ModeConsommation == "LIVRAISON" ? "Livraison" : commande.ModeConsommation)
+                            </td>
+                            <td class="text-end">
+                                <strong class="text-success">@commande.MontantTotal.ToString("N0") FCFA</strong>
+                            </td>
+                            <td>
+                                <span class="badge @(commande.Statut == "LIVREE" ? "bg-success" : 
+                                                    commande.Statut == "EN_LIVRAISON" ? "bg-warning" : 
+                                                    commande.Statut == "EN_PREPARATION" ? "bg-info" : 
+                                                    commande.Statut == "EN_ATTENTE" ? "bg-secondary" : "bg-danger")">
+                                    @commande.Statut
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <!-- ⬇️ BOUTON POUR VOIR LES DÉTAILS -->
+                                <a asp-controller="Home" asp-action="DetailsCommande" 
+                                   asp-route-id="@commande.Id" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> Détails
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Total commandes</h5>
+                        <h2 class="card-text">@Model.Count</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Total dépensé</h5>
+                        <h2 class="card-text">@Model.Sum(c => c.MontantTotal).ToString("N0") FCFA</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Dernière commande</h5>
+                        <h6 class="card-text">@Model.OrderByDescending(c => c.DateCommande).FirstOrDefault()?.DateCommande?.ToString("dd/MM/yyyy")</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Dashboard" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au dashboard
+        </a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary ms-2">
+            <i class="fas fa-shopping-cart"></i> Commander à nouveau
+        </a>
+    </div>
+</div>
+
+    <style>
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .table th {
+            border-top: none;
+            font-weight: 600;
+        }
+        
+        .card {
+            border-radius: 12px;
+            border: none;
+        }
+    </style>

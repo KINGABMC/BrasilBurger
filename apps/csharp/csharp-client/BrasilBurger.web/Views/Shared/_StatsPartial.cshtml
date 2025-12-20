@@ -1,0 +1,39 @@
+@{
+    var stats = ViewData["Stats"] as dynamic;
+}
+
+<div class="row text-center mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card border-primary shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-hamburger"></i> Produits
+                </h5>
+                <p class="card-text display-6 fw-bold">@(stats?.ProduitsCount ?? 0)</p>
+                <small class="text-muted">Produits disponibles</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-success shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title text-success">
+                    <i class="fas fa-users"></i> Clients
+                </h5>
+                <p class="card-text display-6 fw-bold">@(stats?.ClientsCount ?? 0)</p>
+                <small class="text-muted">Clients actifs</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-warning shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title text-warning">
+                    <i class="fas fa-shopping-bag"></i> Commandes
+                </h5>
+                <p class="card-text display-6 fw-bold">@(stats?.CommandesCount ?? 0)</p>
+                <small class="text-muted">Commandes passées</small>
+            </div>
+        </div>
+    </div>
+</div>

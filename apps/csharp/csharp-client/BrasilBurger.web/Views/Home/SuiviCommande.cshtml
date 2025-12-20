@@ -1,0 +1,191 @@
+@model BrasilBurger.Web.Models.Entities.Commande
+@{
+    ViewData["Title"] = "Suivi de commande";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- En-tête -->
+            <div class="text-center mb-5">
+                <h1 class="display-6">Suivi de votre commande</h1>
+                <p class="lead text-muted">Numéro : <strong class="text-primary">@Model.Numero</strong></p>
+            </div>
+
+            <!-- Carte d'état -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">État actuel</h5>
+                            <p class="card-text text-muted small mb-0">
+                                Dernière mise à jour : @Model.DateCommande?.ToString("dd/MM/yyyy HH:mm")
+                            </p>
+                        </div>
+                        <div>
+                            @{
+                                var statutClass = Model.Statut switch
+                                {
+                                    "EN_ATTENTE" => "bg-warning",
+                                    "EN_PREPARATION" => "bg-info",
+                                    "PRETE" => "bg-primary",
+                                    "EN_LIVRAISON" => "bg-purple",
+                                    "LIVREE" => "bg-success",
+                                    "ANNULEE" => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @statutClass p-3 fs-6">@Model.Statut</span>
+                        </div>
+                    </div>
+
+                    <!-- Barre de progression -->
+                    <div class="mt-4">
+                        @{
+                            var progress = Model.Statut switch
+                            {
+                                "EN_ATTENTE" => 20,
+                                "EN_PREPARATION" => 40,
+                                "PRETE" => 60,
+                                "EN_LIVRAISON" => 80,
+                                "LIVREE" => 100,
+                                _ => 0
+                            };
+                        }
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: @progress%" 
+                                 aria-valuenow="@progress" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small>Enregistrée</small>
+                            <small>Préparation</small>
+                            <small>Prête</small>
+                            <small>Livraison</small>
+                            <small>Livrée</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations de livraison -->
+            @if (Model.Livraison != null)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="fas fa-motorcycle"></i> Informations de livraison</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Livreur :</strong> @Model.Livraison.Livreur?.Nom</p>
+                                @if (Model.Livraison.Livreur?.Telephone != null)
+                                {
+                                    <p class="mb-1"><strong>Téléphone :</strong> @Model.Livraison.Livreur.Telephone</p>
+                                }
+                            </div>
+                            @if (Model.Livraison.DateDebut != null)
+                            {
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Départ :</strong> @Model.Livraison.DateDebut?.ToString("HH:mm")</p>
+                                    @if (Model.Livraison.DateFin != null)
+                                    {
+                                        <p class="mb-1"><strong>Livraison estimée :</strong> @Model.Livraison.DateFin?.ToString("HH:mm")</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Détails de la commande -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-receipt"></i> Détails de la commande</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th class="text-end">Prix unitaire</th>
+                                    <th class="text-center">Quantité</th>
+                                    <th class="text-end">Sous-total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ligne in Model.LignesCommande)
+                                {
+                                    <tr>
+                                        <td>@ligne.Produit?.Nom</td>
+                                        <td class="text-end">@ligne.PrixUnitaire.ToString("N0") FCFA</td>
+                                        <td class="text-center">@ligne.Quantite</td>
+                                        <td class="text-end">@((ligne.PrixUnitaire * ligne.Quantite).ToString("N0")) FCFA</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-group-divider">
+                                <tr>
+                                    <th colspan="3" class="text-end">Montant produits :</th>
+                                    <th class="text-end">@Model.MontantProduits.ToString("N0") FCFA</th>
+                                </tr>
+                                <tr>
+                                    <th colspan="3" class="text-end">Frais de livraison :</th>
+                                    <th class="text-end">@Model.FraisLivraison.ToString("N0") FCFA</th>
+                                </tr>
+                                <tr class="table-active">
+                                    <th colspan="3" class="text-end"><h5 class="mb-0">Total :</h5></th>
+                                    <th class="text-end"><h5 class="mb-0">@Model.MontantTotal.ToString("N0") FCFA</h5></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Informations supplémentaires -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-clock"></i> Date :</strong> @Model.DateCommande?.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong><i class="fas fa-truck"></i> Mode :</strong> @Model.ModeConsommation</p>
+                            @if (Model.Paiement != null)
+                            {
+                                <p><strong><i class="fas fa-credit-card"></i> Paiement :</strong> 
+                                    @Model.Paiement.Methode - 
+                                    <span class="badge bg-success">@Model.Paiement.StatutPaiement</span>
+                                </p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            @if (Model.AdresseLivraison != null)
+                            {
+                                <p><strong><i class="fas fa-map-marker-alt"></i> Adresse :</strong></p>
+                                <p class="mb-1">@Model.AdresseLivraison.Rue</p>
+                                <p class="mb-1">@Model.AdresseLivraison.Quartier?.Nom</p>
+                                @if (!string.IsNullOrEmpty(Model.AdresseLivraison.Details))
+                                {
+                                    <p class="text-muted small">@Model.AdresseLivraison.Details</p>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                <a href="@Url.Action("MesCommandes")" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-history"></i> Mes commandes
+                </a>
+                <a href="@Url.Action("Index")" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Retour à l'accueil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-purple { background-color: #6f42c1 !important; }
+    .card { border: none; }
+</style>

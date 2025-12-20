@@ -1,0 +1,222 @@
+@model BrasilBurger.Web.Models.Entities.Commande
+@{
+    ViewData["Title"] = "Détails de la commande";
+    ViewBag.PanierCount = ViewBag.PanierCount ?? 0;
+}
+
+<nav class="navbar navbar-dark" style="background: linear-gradient(135deg, #002776 0%, #009739 100%);">
+    <div class="container">
+        <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+            <span class="text-warning">🍔 BRASIL</span> BURGER
+        </a>
+        <span class="text-white">Détails de la commande</span>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <!-- En-tête de la commande -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Commande #@Model.Numero</h4>
+                <span class="badge @(Model.Statut == "LIVREE" ? "bg-success" : 
+                                    Model.Statut == "EN_LIVRAISON" ? "bg-warning" : 
+                                    Model.Statut == "EN_PREPARATION" ? "bg-info" : 
+                                    Model.Statut == "EN_ATTENTE" ? "bg-secondary" : "bg-danger")">
+                    @Model.Statut
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Date :</strong> @Model.DateCommande?.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p><strong>Mode :</strong> 
+                        @(Model.ModeConsommation == "SUR_PLACE" ? "Sur place" :
+                          Model.ModeConsommation == "EMPORTER" ? "À emporter" :
+                          Model.ModeConsommation == "LIVRAISON" ? "Livraison" : Model.ModeConsommation)
+                    </p>
+                    @if (Model.AdresseLivraison != null)
+                    {
+                        <p><strong>Adresse :</strong> @Model.AdresseLivraison.Rue</p>
+                        @if (!string.IsNullOrEmpty(Model.AdresseLivraison.Details))
+                        {
+                            <p><strong>Détails :</strong> @Model.AdresseLivraison.Details</p>
+                        }
+                    }
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Sous-total :</strong> @Model.MontantProduits.ToString("N0") FCFA</p>
+                    @if (Model.FraisLivraison > 0)
+                    {
+                        <p><strong>Frais de livraison :</strong> @Model.FraisLivraison.ToString("N0") FCFA</p>
+                    }
+                    <p><strong class="h5">Total :</strong> <span class="text-success h4">@Model.MontantTotal.ToString("N0") FCFA</span></p>
+                    @if (!string.IsNullOrEmpty(Model.CodeSuivi))
+                    {
+                        <p><strong>Code de suivi :</strong> <code>@Model.CodeSuivi</code></p>
+                    }
+                </div>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="alert alert-info mt-3">
+                    <strong>Notes :</strong> @Model.Notes
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Détails des produits -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Produits commandés</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.LignesCommande != null && Model.LignesCommande.Any())
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th class="text-center">Quantité</th>
+                            <th class="text-end">Prix unitaire</th>
+                            <th class="text-end">Sous-total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ligne in Model.LignesCommande)
+                        {
+                            <tr>
+                                <td>
+                                    @if (ligne.Produit != null)
+                                    {
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(ligne.Produit.UrlImage))
+                                            {
+                                                <img src="@ligne.Produit.UrlImage" alt="@ligne.Produit.Nom" 
+                                                     class="img-thumbnail me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                            }
+                                            <div>
+                                                <strong>@ligne.Produit.Nom</strong><br>
+                                                <small class="text-muted">@ligne.Produit.Type</small>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span>Produit #@ligne.ProduitId</span>
+                                    }
+                                </td>
+                                <td class="text-center">@ligne.Quantite</td>
+                                <td class="text-end">@ligne.PrixUnitaire.ToString("N0") FCFA</td>
+                                <td class="text-end">@ligne.SousTotal.ToString("N0") FCFA</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td colspan="3" class="text-end"><strong>Total produits</strong></td>
+                            <td class="text-end"><strong>@Model.MontantProduits.ToString("N0") FCFA</strong></td>
+                        </tr>
+                        @if (Model.FraisLivraison > 0)
+                        {
+                            <tr class="table-light">
+                                <td colspan="3" class="text-end"><strong>Frais de livraison</strong></td>
+                                <td class="text-end"><strong>@Model.FraisLivraison.ToString("N0") FCFA</strong></td>
+                            </tr>
+                        }
+                        <tr class="table-success">
+                            <td colspan="3" class="text-end"><h5 class="mb-0">TOTAL</h5></td>
+                            <td class="text-end"><h4 class="mb-0">@Model.MontantTotal.ToString("N0") FCFA</h4></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">Aucun détail de produit disponible.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Informations de paiement -->
+    @if (Model.Paiement != null)
+    {
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Informations de paiement</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Méthode :</strong> 
+                            @(Model.Paiement.Methode == "ESPECES" ? "Espèces" :
+                              Model.Paiement.Methode == "WAVE" ? "Wave" :
+                              Model.Paiement.Methode == "ORANGE_MONEY" ? "Orange Money" : Model.Paiement.Methode)
+                        </p>
+                        <p><strong>Statut :</strong> 
+                            <span class="badge @(Model.Paiement.StatutPaiement == "PAYE" ? "bg-success" : "bg-warning")">
+                                @(Model.Paiement.StatutPaiement == "PAYE" ? "Payé" : 
+                                  Model.Paiement.StatutPaiement == "ECHEC" ? "En attente" : Model.Paiement.StatutPaiement)
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Montant :</strong> @Model.Paiement.Montant.ToString("N0") FCFA</p>
+                        @if (Model.Paiement.DatePaiement.HasValue)
+                        {
+                            <p><strong>Date paiement :</strong> @Model.Paiement.DatePaiement.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Paiement.Reference))
+                        {
+                            <p><strong>Référence :</strong> <code>@Model.Paiement.Reference</code></p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Boutons d'action -->
+    <div class="d-flex justify-content-between mt-4">
+        <a asp-controller="Home" asp-action="MesCommandes" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à mes commandes
+        </a>
+        <div>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
+                <i class="fas fa-home"></i> Accueil
+            </a>
+            @if (Model.Statut != "ANNULEE" && Model.Statut != "LIVREE")
+            {
+                <button class="btn btn-warning ms-2">
+                    <i class="fas fa-phone"></i> Contacter le restaurant
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .img-thumbnail {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+</style>
