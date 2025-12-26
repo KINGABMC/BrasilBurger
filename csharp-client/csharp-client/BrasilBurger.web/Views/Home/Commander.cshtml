@@ -1,0 +1,687 @@
+@using BrasilBurger.Web.Models.Entities
+@using BrasilBurger.Web.Controllers
+@{
+    ViewData["Title"] = "Finaliser la commande - Brasil Burger";
+    var panier = ViewBag.Panier as List<SessionPanierItem>;
+    var total = ViewBag.Total ?? 0;
+    var zones = ViewBag.Zones as List<Zone>;
+    var quartiers = ViewBag.Quartiers as List<Quartier>;
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --brasil-green: #009739;
+            --brasil-yellow: #FEDF00;
+            --brasil-blue: #002776;
+            --brasil-red: #DC3545;
+        }
+
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .form-section h4 {
+            color: var(--brasil-blue);
+            border-bottom: 3px solid var(--brasil-green);
+            padding-bottom: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .delivery-option {
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .delivery-option:hover {
+            border-color: var(--brasil-blue);
+            background-color: rgba(0, 39, 118, 0.05);
+        }
+
+        .delivery-option.selected {
+            border-color: var(--brasil-green);
+            background-color: rgba(0, 151, 57, 0.1);
+        }
+
+        .payment-option {
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .payment-option:hover {
+            border-color: var(--brasil-blue);
+            background-color: rgba(0, 39, 118, 0.05);
+        }
+
+        .payment-option.selected {
+            border-color: var(--brasil-green);
+            background-color: rgba(0, 151, 57, 0.1);
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--brasil-blue);
+            box-shadow: 0 0 0 0.2rem rgba(0, 39, 118, 0.15);
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, var(--brasil-red) 0%, var(--brasil-green) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, var(--brasil-blue) 0%, var(--brasil-green) 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            position: sticky;
+            top: 20px;
+        }
+
+        .address-section {
+            display: none;
+        }
+        
+        .mode-indicator {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .mode-sur-place {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            border: 1px solid #0d6efd;
+        }
+
+        .mode-emporter {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            border: 1px solid #6c757d;
+        }
+
+        .mode-livraison {
+            background-color: rgba(25, 135, 84, 0.1);
+            color: #198754;
+            border: 1px solid #198754;
+        }
+        
+        .payment-info {
+            display: none;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        
+        /* ✅ AJOUT: Styles pour messages d'erreur */
+        .error-message {
+            display: none;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 8px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .field-error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark" style="background: linear-gradient(135deg, var(--brasil-blue) 0%, var(--brasil-green) 100%);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+                <span class="text-warning">🍔 BRASIL</span> BURGER
+            </a>
+            <span class="text-white">Finaliser la commande</span>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <form id="commandeForm">
+                    <!-- SECTION 1: MODE DE LIVRAISON -->
+                    <div class="form-section">
+                        <h4><i class="fas fa-truck"></i> Mode de livraison</h4>
+                        
+                        <!-- ✅ AJOUT: Zone d'erreur -->
+                        <div id="errorDelivery" class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="errorDeliveryText"></span>
+                        </div>
+                        
+                        <div id="modeIndicator" class="mode-indicator mode-sur-place">
+                            <i class="fas fa-chair"></i> Vous consommez sur place
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <!-- ✅ CORRECTION: Ajout data-mode -->
+                                <div class="delivery-option" data-mode="SUR_PLACE" onclick="selectDelivery('SUR_PLACE', this)">
+                                    <i class="fas fa-chair fa-3x text-primary mb-3"></i>
+                                    <h6>Sur place</h6>
+                                    <small>Consommation au restaurant</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <!-- ✅ CORRECTION: Ajout data-mode -->
+                                <div class="delivery-option" data-mode="EMPORTER" onclick="selectDelivery('EMPORTER', this)">
+                                    <i class="fas fa-store fa-3x text-secondary mb-3"></i>
+                                    <h6>À emporter</h6>
+                                    <small>Récupérez au comptoir</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <!-- ✅ CORRECTION: Ajout data-mode -->
+                                <div class="delivery-option" data-mode="LIVRAISON" onclick="selectDelivery('LIVRAISON', this)">
+                                    <i class="fas fa-motorcycle fa-3x text-success mb-3"></i>
+                                    <h6>Livraison</h6>
+                                    <small>Livré à votre adresse</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ADRESSE DE LIVRAISON (visible seulement pour LIVRAISON) -->
+                        <div id="addressSection" class="address-section mt-4">
+                            <h5><i class="fas fa-map-marker-alt"></i> Adresse de livraison</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Zone</label>
+                                    <select class="form-select" id="zoneId">
+                                        <option value="">Sélectionnez une zone</option>
+                                        @if (zones != null)
+                                        {
+                                            foreach (var zone in zones)
+                                            {
+                                                <option value="@zone.Id">@zone.Nom</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Quartier</label>
+                                    <select class="form-select" id="quartierId" name="quartierId">
+                                        <option value="">Sélectionnez un quartier</option>
+                                        @if (quartiers != null)
+                                        {
+                                            foreach (var quartier in quartiers)
+                                            {
+                                                <!-- ✅ CORRECTION: Ajout data-zone -->
+                                                <option value="@quartier.Id" 
+                                                        data-prix="@quartier.PrixLivraisonBase"
+                                                        data-zone="@quartier.ZoneId">
+                                                    @quartier.Nom (@quartier.PrixLivraisonBase.ToString("N0") FCFA)
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Rue et numéro *</label>
+                                    <input type="text" class="form-control" id="rue" name="rue" placeholder="Ex: Rue 10, Villa 25" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Détails supplémentaires</label>
+                                    <textarea class="form-control" id="details" name="details" rows="2" placeholder="Porte, étage, repères..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: MODE DE PAIEMENT -->
+                    <div class="form-section">
+                        <h4><i class="fas fa-credit-card"></i> Mode de paiement</h4>
+                        
+                        <!-- ✅ AJOUT: Zone d'erreur -->
+                        <div id="errorPayment" class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="errorPaymentText"></span>
+                        </div>
+                        
+                        <div id="paymentIndicator" class="mode-indicator mode-sur-place">
+                            <i class="fas fa-money-bill"></i> Paiement en espèces à la réception
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <!-- ✅ CORRECTION: Ajout data-mode -->
+                                <div class="payment-option" data-mode="ESPECES" onclick="selectPayment('ESPECES', this)">
+                                    <i class="fas fa-money-bill fa-3x text-success mb-3"></i>
+                                    <h6>Espèces</h6>
+                                    <small>Paiement à la livraison/réception</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <!-- ✅ CORRECTION: Ajout data-mode -->
+                                <div class="payment-option" data-mode="WAVE" onclick="selectPayment('WAVE', this)">
+                                    <i class="fas fa-money-bill-wave fa-3x text-primary mb-3"></i>
+                                    <h6>Wave</h6>
+                                    <small>Paiement mobile</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <!-- ✅ CORRECTION: Ajout data-mode -->
+                                <div class="payment-option" data-mode="ORANGE_MONEY" onclick="selectPayment('ORANGE_MONEY', this)">
+                                    <i class="fas fa-mobile-alt fa-3x text-warning mb-3"></i>
+                                    <h6>Orange Money</h6>
+                                    <small>Paiement mobile</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INFORMATIONS POUR CHAQUE MODE DE PAIEMENT -->
+                        <div id="especesInfo" class="payment-info mt-3 p-3 bg-light rounded">
+                            <h6><i class="fas fa-info-circle text-info"></i> Paiement en espèces</h6>
+                            <p class="mb-0 small">
+                                <strong>Sur place/À emporter :</strong> Paiement au comptoir<br>
+                                <strong>Livraison :</strong> Paiement à la livraison au livreur
+                            </p>
+                        </div>
+                        
+                        <div id="mobilePaymentInfo" class="payment-info mt-3 p-3 bg-light rounded">
+                            <h6><i class="fas fa-info-circle text-info"></i> Instructions pour paiement mobile</h6>
+                            <p class="mb-0 small">
+                                <strong>Wave/Orange Money :</strong> Le paiement sera simulé pour cette démonstration.<br>
+                                Vous recevrez un code de confirmation par SMS.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 3: COORDONNÉES -->
+                    <div class="form-section">
+                        <h4><i class="fas fa-user"></i> Coordonnées</h4>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Téléphone (optionnel)</label>
+                                <input type="tel" class="form-control" id="telephone" name="telephone" 
+                                       placeholder="Ex: 77 123 45 67">
+                                <small class="text-muted">
+                                    Pour vous contacter concernant votre commande.<br>
+                                    <span class="text-info">
+                                        <i class="fas fa-info-circle"></i> Si vide, nous utiliserons le numéro de votre compte.
+                                    </span>
+                                </small>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes pour la commande</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                          placeholder="Instructions spéciales, allergies, heure de livraison préférée, etc."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RÉCAPITULATIF -->
+            <div class="col-lg-4">
+                <div class="summary-box">
+                    <h4 class="text-center mb-4">Récapitulatif</h4>
+                    
+                    <div class="mb-3">
+                        <h6>Votre commande</h6>
+                        <div class="border-top border-bottom py-2 mb-2" style="max-height: 200px; overflow-y: auto;">
+                            @if (panier != null && panier.Any())
+                            {
+                                foreach (var item in panier)
+                                {
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>@item.Nom × @item.Quantite</span>
+                                        <span>@(item.SousTotal.ToString("N0")) FCFA</span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Sous-total</span>
+                            <span id="subtotal">@total.ToString("N0") FCFA</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1" id="deliveryFeeRow" style="display: none;">
+                            <span>Frais de livraison</span>
+                            <span id="deliveryFee">0 FCFA</span>
+                        </div>
+                        <hr class="bg-light my-2">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="mb-0">Total</h5>
+                            <h3 class="mb-0" id="totalAmount">@total.ToString("N0") FCFA</h3>
+                        </div>
+                    </div>
+
+                    <!-- BOUTON CONFIRMER -->
+                    <button class="btn btn-confirm w-100 mt-3" onclick="passerCommande()" id="btnConfirmer">
+                        <i class="fas fa-check-circle"></i> CONFIRMER LA COMMANDE
+                        <span class="loading-spinner" id="loadingSpinner"></span>
+                    </button>
+
+                    <!-- RETOUR PANIER -->
+                    <div class="text-center mt-3">
+                        <a asp-controller="Home" asp-action="VoirPanier" class="text-white-50 text-decoration-none">
+                            <i class="fas fa-arrow-left"></i> Retour au panier
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMATION -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmation de commande</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="confirmationMessage"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-success">Retour à l'accueil</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    let selectedDelivery = null;
+    let selectedPayment = null;
+    let deliveryFee = 0;
+    const subtotal = parseInt('@total'.replace(/\u00A0/g, '')) || 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // ✅ CORRECTION: Supprimer les addEventListener en double
+        // Les onclick suffisent maintenant qu'on a data-mode
+
+        // Valeurs par défaut
+        const defaultDelivery = document.querySelector('.delivery-option');
+        if(defaultDelivery) selectDelivery('SUR_PLACE', defaultDelivery);
+
+        const defaultPayment = document.querySelector('.payment-option');
+        if(defaultPayment) selectPayment('ESPECES', defaultPayment);
+
+        // ✅ CORRECTION: Filtrage zone → quartier
+        document.getElementById('zoneId').addEventListener('change', function() {
+            const zoneId = this.value;
+            const quartierSelect = document.getElementById('quartierId');
+            
+            quartierSelect.value = "";
+            deliveryFee = 0;
+            
+            [...quartierSelect.options].forEach(opt => {
+                if (!opt.dataset.zone) return;
+                opt.style.display = opt.dataset.zone === zoneId ? 'block' : 'none';
+            });
+            
+            updateTotal();
+        });
+
+        // Changement de quartier
+        const quartierSelect = document.getElementById('quartierId');
+        if(quartierSelect) {
+            quartierSelect.addEventListener('change', calculateDeliveryFee);
+        }
+    });
+
+    // ✅ CORRECTION: Fonction corrigée avec les bons paramètres
+    function selectDelivery(mode, el) {
+        selectedDelivery = mode;
+
+        document.querySelectorAll('.delivery-option').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+
+        const indicator = document.getElementById('modeIndicator');
+        const address = document.getElementById('addressSection');
+        const deliveryRow = document.getElementById('deliveryFeeRow');
+
+        if(mode === 'LIVRAISON') {
+            indicator.innerHTML = '<i class="fas fa-motorcycle"></i> Livraison à domicile';
+            address.style.display = 'block';
+            deliveryRow.style.display = 'flex';
+            calculateDeliveryFee();
+        } else if(mode === 'SUR_PLACE') {
+            indicator.innerHTML = '<i class="fas fa-chair"></i> Sur place';
+            address.style.display = 'none';
+            deliveryRow.style.display = 'none';
+            deliveryFee = 0;
+            updateTotal();
+        } else { // EMPORTER
+            indicator.innerHTML = '<i class="fas fa-store"></i> À emporter';
+            address.style.display = 'none';
+            deliveryRow.style.display = 'none';
+            deliveryFee = 0;
+            updateTotal();
+        }
+    }
+
+    // ✅ CORRECTION: Fonction corrigée avec les bons paramètres
+    function selectPayment(mode, el) {
+        selectedPayment = mode;
+
+        document.querySelectorAll('.payment-option').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+
+        // Affichage infos paiement
+        const especesInfo = document.getElementById('especesInfo');
+        const mobileInfo = document.getElementById('mobilePaymentInfo');
+
+        if(mode === 'ESPECES') {
+            especesInfo.style.display = 'block';
+            mobileInfo.style.display = 'none';
+        } else if(mode === 'WAVE' || mode === 'ORANGE_MONEY') {
+            especesInfo.style.display = 'none';
+            mobileInfo.style.display = 'block';
+        }
+    }
+
+    // Calcul des frais de livraison
+    function calculateDeliveryFee() {
+        const opt = document.querySelector('#quartierId option:checked');
+        deliveryFee = opt?.dataset.prix ? parseInt(opt.dataset.prix) : 0;
+        document.getElementById('deliveryFee').textContent = deliveryFee.toLocaleString() + ' FCFA';
+        updateTotal();
+    }
+
+    // Mise à jour du total
+    function updateTotal() {
+        const total = subtotal + deliveryFee;
+        document.getElementById('totalAmount').textContent = total.toLocaleString() + ' FCFA';
+    }
+
+    // ✅ CORRECTION: Envoi vers PasserCommande avec validation élégante
+    async function passerCommande() {
+        // Réinitialiser les erreurs
+        document.getElementById('errorDelivery').classList.remove('show');
+        document.getElementById('errorPayment').classList.remove('show');
+        document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+
+        // 1️⃣ VALIDATION Mode de livraison
+        if (!selectedDelivery) {
+            showError('errorDelivery', 'errorDeliveryText', 'Veuillez sélectionner un mode de livraison');
+            scrollToError('errorDelivery');
+            return;
+        }
+
+        // 2️⃣ VALIDATION Mode de paiement
+        if (!selectedPayment) {
+            showError('errorPayment', 'errorPaymentText', 'Veuillez sélectionner un mode de paiement');
+            scrollToError('errorPayment');
+            return;
+        }
+
+        // 3️⃣ VALIDATION Adresse de livraison
+        if (selectedDelivery === 'LIVRAISON') {
+            const rue = document.getElementById('rue');
+            const quartierId = document.getElementById('quartierId');
+            
+            if (!rue.value.trim()) {
+                rue.classList.add('field-error');
+                showError('errorDelivery', 'errorDeliveryText', 'Veuillez entrer votre adresse de livraison (rue et numéro)');
+                scrollToError('errorDelivery');
+                rue.focus();
+                return;
+            }
+            
+            if (!quartierId.value) {
+                quartierId.classList.add('field-error');
+                showError('errorDelivery', 'errorDeliveryText', 'Veuillez sélectionner un quartier');
+                scrollToError('errorDelivery');
+                quartierId.focus();
+                return;
+            }
+        }
+
+        // Désactiver le bouton et afficher le spinner
+        const btn = document.getElementById('btnConfirmer');
+        const spinner = document.getElementById('loadingSpinner');
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+
+        // Préparation des données
+        const formData = new FormData();
+        formData.append('modeLivraison', selectedDelivery);
+        formData.append('modePaiement', selectedPayment);
+        formData.append('telephone', document.getElementById('telephone').value.trim());
+        formData.append('notes', document.getElementById('notes').value.trim());
+
+        if (selectedDelivery === 'LIVRAISON') {
+            const quartierId = document.getElementById('quartierId').value;
+            if (quartierId) formData.append('quartierId', quartierId);
+            formData.append('rue', document.getElementById('rue').value.trim());
+            formData.append('details', document.getElementById('details').value.trim());
+        }
+
+        // Envoi
+        try {
+            const response = await fetch('/Home/PasserCommande', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Afficher modal de confirmation
+                document.getElementById('confirmationMessage').innerHTML = `
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle"></i> ${result.message}</h5>
+                        <p><strong>Numéro de commande :</strong> ${result.commandeNumero}</p>
+                        <p><strong>Total :</strong> ${result.total.toLocaleString()} FCFA</p>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+                modal.show();
+            } else {
+                // Afficher l'erreur de manière élégante
+                showError('errorPayment', 'errorPaymentText', result.message || 'Erreur lors de la commande');
+                scrollToError('errorPayment');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            showError('errorPayment', 'errorPaymentText', 'Erreur de connexion au serveur. Veuillez réessayer.');
+            scrollToError('errorPayment');
+        } finally {
+            // Réactiver le bouton
+            btn.disabled = false;
+            spinner.style.display = 'none';
+        }
+    }
+
+    // ✅ FONCTION: Afficher une erreur élégante
+    function showError(containerId, textId, message) {
+        const container = document.getElementById(containerId);
+        const text = document.getElementById(textId);
+        text.textContent = message;
+        container.classList.add('show');
+    }
+
+    // ✅ FONCTION: Scroll vers l'erreur
+    function scrollToError(elementId) {
+        const element = document.getElementById(elementId);
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    </script>
+</body>
+</html>

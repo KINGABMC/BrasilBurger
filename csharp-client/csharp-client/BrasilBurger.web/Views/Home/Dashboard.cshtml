@@ -1,0 +1,241 @@
+@using BrasilBurger.Web.Models.Entities
+@{
+    ViewData["Title"] = "Mon Espace - Brasil Burger";
+    var client = ViewBag.Client as Client;
+    var commandesRecentes = ViewBag.CommandesRecentes as List<Commande>;
+    var totalCommandes = ViewBag.TotalCommandes ?? 0;
+    var totalDepense = ViewBag.TotalDepense ?? 0m;
+    var panierCount = ViewBag.PanierCount ?? 0;
+}
+
+<style>
+    :root {
+        --brasil-green: #009739;
+        --brasil-yellow: #FEDF00;
+        --brasil-blue: #002776;
+        --brasil-red: #DC3545;
+    }
+
+    .welcome-section {
+        background: linear-gradient(135deg, var(--brasil-blue) 0%, var(--brasil-green) 100%);
+        color: white;
+        padding: 40px 0;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .stat-card i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, var(--brasil-blue) 0%, var(--brasil-green) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-card h3 {
+        color: var(--brasil-blue);
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--brasil-green);
+    }
+
+    .action-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+    }
+
+    .btn-dashboard {
+        background: linear-gradient(135deg, var(--brasil-red) 0%, var(--brasil-green) 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .recent-orders {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .order-item {
+        border-bottom: 1px solid #e9ecef;
+        padding: 15px 0;
+    }
+
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .status-EN_ATTENTE { background-color: #fff3cd; color: #856404; }
+    .status-EN_PREPARATION { background-color: #cfe2ff; color: #084298; }
+    .status-EN_LIVRAISON { background-color: #d1e7dd; color: #0a3622; }
+    .status-LIVRE { background-color: #d1e7dd; color: #0f5132; }
+    .status-ANNULE { background-color: #f8d7da; color: #721c24; }
+</style>
+
+<div class="container py-5">
+    <!-- Section Bienvenue -->
+    <div class="welcome-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-user-circle"></i> Bienvenue, @(client?.Prenom ?? "Client") @(client?.Nom ?? "") !</h1>
+                    <p class="lead mb-0">Content de vous revoir sur Brasil Burger 🍔</p>
+                    <small class="opacity-75">Membre depuis @client?.DateInscription?.ToString("MMMM yyyy")</small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-warning btn-lg">
+                        <i class="fas fa-hamburger"></i> Commander maintenant
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-shopping-bag"></i>
+                <h3>@totalCommandes</h3>
+                <p>Commandes passées</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>@totalDepense.ToString("N0") FCFA</h3>
+                <p>Total dépensé</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-star"></i>
+                <h3>Client Fidèle</h3>
+                <p>Merci pour votre confiance !</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <h4 class="mb-4"><i class="fas fa-bolt text-warning"></i> Actions rapides</h4>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <a asp-controller="Home" asp-action="Index" class="action-card text-decoration-none d-block">
+                        <h5><i class="fas fa-hamburger text-success"></i> Commander</h5>
+                        <p class="text-muted mb-0">Nouvelle commande</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a asp-controller="Home" asp-action="MesCommandes" class="action-card text-decoration-none d-block">
+                        <h5><i class="fas fa-history text-primary"></i> Mes commandes</h5>
+                        <p class="text-muted mb-0">Voir l'historique</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a asp-controller="Home" asp-action="VoirPanier" class="action-card text-decoration-none d-block">
+                        <h5><i class="fas fa-shopping-cart text-warning"></i> Mon panier</h5>
+                        <p class="text-muted mb-0">@panierCount article(s)</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a asp-controller="Client" asp-action="Profil" class="action-card text-decoration-none d-block">
+                        <h5><i class="fas fa-user-edit text-info"></i> Mon profil</h5>
+                        <p class="text-muted mb-0">Modifier mes infos</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commandes récentes -->
+    @if (commandesRecentes != null && commandesRecentes.Any())
+    {
+        <div class="recent-orders">
+            <h4 class="mb-4"><i class="fas fa-clock text-primary"></i> Commandes récentes</h4>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>N° Commande</th>
+                            <th>Date</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var commande in commandesRecentes)
+                        {
+                            <tr>
+                                <td><strong>@commande.Numero</strong></td>
+                                <td>@commande.DateCommande?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@commande.MontantTotal.ToString("N0") FCFA</td>
+                                <td>
+                                    <span class="badge-status status-@commande.Statut">
+                                        @commande.Statut
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-controller="Home" asp-action="DetailsCommande" 
+                                       asp-route-id="@commande.Id" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> Détails
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a asp-controller="Home" asp-action="MesCommandes" class="btn btn-primary">
+                    <i class="fas fa-list"></i> Voir toutes mes commandes
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Vous n'avez pas encore passé de commande.
+            <a asp-controller="Home" asp-action="Index" class="alert-link">Découvrez nos produits !</a>
+        </div>
+    }
+</div>

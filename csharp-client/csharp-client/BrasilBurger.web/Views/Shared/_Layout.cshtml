@@ -1,0 +1,255 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Brasil Burger</title>
+    
+    <!-- CDN pour Render (plus fiable que les fichiers locaux) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <!-- NAVIGATION OPTIMISÉE POUR RENDER -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #002776 0%, #009739 100%);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+                <i class="fas fa-hamburger text-warning"></i>
+                <span class="text-warning">BRASIL</span> BURGER
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                    </li>
+                    
+                    @{
+                        var clientId = Context.Session.GetInt32("ClientId");
+                        var estConnecte = clientId.HasValue;
+                    }
+                    
+                    @if (estConnecte)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="MesCommandes">
+                                <i class="fas fa-history"></i> Commandes
+                            </a>
+                        </li>
+                    }
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <!-- PANIER avec count optimisé -->
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" asp-controller="Home" asp-action="VoirPanier">
+                            <i class="fas fa-shopping-cart"></i> Panier
+                            @{
+                                // ✅ LECTURE DIRECTE DU COUNT - OPTIMISÉ POUR RENDER
+                                var panierCount = Context.Session.GetInt32("PanierCount") ?? 0;
+                            }
+                            @if (panierCount > 0)
+                            {
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                      style="font-size: 0.65em; padding: 0.25em 0.5em;">
+                                    @panierCount
+                                </span>
+                            }
+                        </a>
+                    </li>
+                    
+                    @if (estConnecte)
+                    {
+                        <!-- CLIENT CONNECTÉ -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i>
+                                  @{
+                                    // ✅ CORRECTION ICI : Utilise une variable avec le null-coalescing
+                                    var clientPrenom = Context.Session.GetString("ClientPrenom");
+                                    var displayText = !string.IsNullOrEmpty(clientPrenom) ? clientPrenom : "Mon compte";
+                                    }
+                                    @displayText
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Home" asp-action="Dashboard">
+                                        <i class="fas fa-user me-2"></i> Mon profil
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-controller="Client" asp-action="Logout">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <!-- NON CONNECTÉ -->
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Client" asp-action="Login">
+                                <i class="fas fa-sign-in-alt"></i> Connexion
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-warning ms-2" asp-controller="Client" asp-action="Register">
+                                <i class="fas fa-user-plus"></i> S'inscrire
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+            <!-- Footer Général -->
+        <footer class="pt-5 pb-3" style="background: linear-gradient(135deg, #002776 0%, #000 100%); color: white; margin-top: auto;">
+            <div class="container">
+                <div class="row">
+                    <!-- Colonne 1: Informations -->
+                    <div class="col-md-4 mb-4">
+                        <h5 class="text-warning mb-3">
+                            <i class="fas fa-hamburger"></i> 🍔 Brasil Burger
+                        </h5>
+                        <p class="text-white-50 mb-2">
+                            <i class="fas fa-flag me-2"></i> Les meilleurs burgers brésiliens à Dakar
+                        </p>
+                        <p class="text-white-50 mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i> Dakar, Sénégal
+                        </p>
+                        <p class="text-white-50 mb-0">
+                            <i class="fas fa-clock me-2"></i> Ouvert 7j/7 • 10h-23h
+                        </p>
+                    </div>
+                    
+                    <!-- Colonne 2: Paiements -->
+                    <div class="col-md-4 mb-4">
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-credit-card"></i> Modes de paiement
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <span class="badge bg-light text-dark p-2">
+                                <i class="fas fa-money-bill-wave me-1"></i> Wave
+                            </span>
+                            <span class="badge bg-warning text-dark p-2">
+                                <i class="fas fa-mobile-alt me-1"></i> Orange Money
+                            </span>
+                            <span class="badge bg-success text-white p-2">
+                                <i class="fas fa-money-bill me-1"></i> Espèces
+                            </span>
+                            <span class="badge bg-primary text-white p-2">
+                                <i class="fab fa-cc-visa me-1"></i> Carte
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Colonne 3: Livraison -->
+                    <div class="col-md-4">
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-shipping-fast"></i> Livraison
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <span class="badge bg-info text-white p-2">
+                                <i class="fas fa-motorcycle me-1"></i> Livraison
+                            </span>
+                            <span class="badge bg-secondary text-white p-2">
+                                <i class="fas fa-store me-1"></i> À emporter
+                            </span>
+                            <span class="badge bg-primary text-white p-2">
+                                <i class="fas fa-chair me-1"></i> Sur place
+                            </span>
+                        </div>
+                        
+                        <!-- Liens rapides -->
+                        <div class="mt-4">
+                            <h6 class="text-warning mb-2">
+                                <i class="fas fa-link"></i> Navigation rapide
+                            </h6>
+                            <div class="d-flex flex-column">
+                                <a class="text-white-50 text-decoration-none mb-1" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-home me-1"></i> Accueil
+                                </a>
+                                <a class="text-white-50 text-decoration-none mb-1" asp-controller="Home" asp-action="Dashboard">
+                                    <i class="fas fa-user-circle me-1"></i> Mon compte
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="bg-light my-4">
+                
+                <!-- Copyright -->
+                <div class="text-center text-white-50">
+                    <p class="mb-1">
+                        &copy; @DateTime.Now.Year Brasil Burger Dakar • Tous droits réservés • Prix en FCFA
+                    </p>
+                    <p class="small mb-0">
+                        <i class="fas fa-phone me-1"></i> 33 800 00 00 • 
+                        <i class="fas fa-envelope me-1 ms-2"></i> contact@brasilburger.sn
+                    </p>
+                </div>
+            </div>
+        </footer>
+
+    <!-- SCRIPTS POUR RENDER -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <!-- SCRIPT POUR METTRE À JOUR LE PANIER EN TEMPS RÉEL -->
+    <script>
+        // Met à jour le badge panier via AJAX (optionnel)
+        function updateCartBadge() {
+            fetch('/Home/GetPanierCountApi')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.querySelector('.nav-link[href*="VoirPanier"] .badge');
+                    if (data.count > 0) {
+                        if (!badge) {
+                            const link = document.querySelector('.nav-link[href*="VoirPanier"]');
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                            newBadge.style.cssText = 'font-size: 0.65em; padding: 0.25em 0.5em;';
+                            newBadge.textContent = data.count;
+                            link.appendChild(newBadge);
+                        } else {
+                            badge.textContent = data.count;
+                        }
+                    } else if (badge) {
+                        badge.remove();
+                    }
+                });
+        }
+        
+        // Met à jour toutes les 30 secondes (pour sessions distribuées Render)
+        setInterval(updateCartBadge, 30000);
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

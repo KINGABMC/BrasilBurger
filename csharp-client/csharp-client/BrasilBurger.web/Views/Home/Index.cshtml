@@ -1,0 +1,537 @@
+﻿@{
+    ViewData["Title"] = "Brasil Burger - Commandez en ligne";
+    var burgers = ViewBag.Burgers as List<Produit>;
+    var menus = ViewBag.Menus as List<Produit>;
+    var complements = ViewBag.Complements as List<Produit>;
+    var panierCount = ViewBag.PanierCount ?? 0;
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+        
+        :root {
+            --brasil-green: #009739;
+            --brasil-yellow: #FEDF00;
+            --brasil-blue: #002776;
+            --brasil-red: #DC3545;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f8f9fa;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--brasil-blue) 0%, var(--brasil-green) 100%);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .product-card {
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .product-card img {
+            transition: transform 0.5s ease;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .section-title { 
+            color: var(--brasil-blue); 
+            border-left: 5px solid var(--brasil-green); 
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+
+        .badge-type {
+            border-radius: 6px;
+            padding: 0.5em 0.8em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-type-burger {
+            background-color: var(--brasil-yellow);
+            color: #000;
+        }
+
+        .badge-type-menu {
+            background-color: var(--brasil-green);
+            color: white;
+        }
+
+        .badge-type-complement {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-order {
+            background: linear-gradient(135deg, var(--brasil-red) 0%, var(--brasil-green) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-order:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .panier-badge {
+            position: relative;
+            background: var(--brasil-red);
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            top: -10px;
+            right: -5px;
+        }
+
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover; 
+            background-position: center;
+            color: white; 
+            padding: 120px 0;
+            text-align: center;
+        }
+
+        .hero-section h1 {
+            font-weight: 800;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .hero-section .lead {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .price {
+            color: var(--brasil-green);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--brasil-blue) 0%, #000 100%);
+            color: white;
+            margin-top: 80px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cart-animation {
+            animation: cartBounce 0.5s ease;
+        }
+
+        @@keyframes cartBounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+            /* ✅ AJOUT: Styles pour les filtres */
+            .filter-container {
+                background: white;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 30px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            }
+
+            .filter-btn {
+                padding: 12px 30px;
+                border: 2px solid #dee2e6;
+                border-radius: 25px;
+                background: white;
+                color: #495057;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                margin: 5px;
+                cursor: pointer;
+            }
+
+            .filter-btn:hover {
+                border-color: var(--brasil-blue);
+                background: rgba(0, 39, 118, 0.05);
+                transform: translateY(-2px);
+            }
+
+            .filter-btn.active {
+                background: linear-gradient(135deg, var(--brasil-blue) 0%, var(--brasil-green) 100%);
+                color: white;
+                border-color: transparent;
+                box-shadow: 0 4px 15px rgba(0, 151, 57, 0.3);
+            }
+
+            .product-item {
+                transition: all 0.3s ease;
+            }
+
+            .product-item.hidden {
+                display: none !important;
+            }
+                    /* ✅ AJOUT: Animation pour le filtrage */
+            .section-title-item, .product-item {
+                transition: opacity 0.3s ease, transform 0.3s ease;
+            }
+
+            .product-item.hidden {
+                opacity: 0;
+                transform: translateY(20px);
+                height: 0;
+                overflow: hidden;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            /* ✅ NAVIGATION INDEX - PLEINE LARGEUR */
+    .navbar-index {
+        background: linear-gradient(135deg, #002776 0%, #009739 100%) !important;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1) !important;
+        width: 100vw !important;
+        margin-left: calc(-50vw + 50%) !important;
+        margin-right: calc(-50vw + 50%) !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .container-fluid-nav {
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
+    }
+
+    /* ✅ FOOTER GÉNÉRAL */
+    .footer-general {
+        background: linear-gradient(135deg, #002776 0%, #000 100%);
+        color: white;
+        margin-top: auto;
+        padding-top: 3rem;
+        padding-bottom: 2rem;
+    }
+
+    .footer-link {
+        color: rgba(255, 255, 255, 0.7) !important;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .footer-link:hover {
+        color: #ffc107 !important;
+    }
+    </style>
+</head>
+<body>
+ <!-- Navigation Index - PLEINE LARGEUR -->
+<!-- Navigation Index - CORRIGÉE -->
+<nav class="navbar navbar-expand-lg navbar-dark " style="background: linear-gradient(135deg, #002776 0%, #009739 100%); box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+            <span class="text-warning">🍔 BRASIL</span> BURGER
+        </a>
+        
+        <!-- Panier à droite -->
+        <div class="d-flex align-items-center ms-auto">
+            <a class="nav-link position-relative" asp-controller="Home" asp-action="VoirPanier" id="panierLink" 
+               style="font-size: 1.1rem; padding: 0.5rem 1rem;">
+                <i class="fas fa-shopping-cart fa-lg" style="color: #FEDF00 !important;"></i>
+                <span class="panier-badge" id="panierBadge" style="background: #DC3545 !important;">@panierCount</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">🍔 LES MEILLEURS BURGERS BRÉSILIENS</h1>
+            <p class="lead mb-4">Livrés chez vous en 30 minutes ou moins • Dakar, Sénégal</p>
+            <a href="#catalogue" class="btn btn-warning btn-lg px-4">
+                <i class="fas fa-hamburger"></i> COMMANDER MAINTENANT
+            </a>
+        </div>
+    </div>
+
+    <!-- Catalogue -->
+    <div class="container py-5" id="catalogue">
+        <!-- ✅ FILTRES -->
+        <div class="filter-container text-center">
+            <h5 class="mb-3"><i class="fas fa-filter"></i> Filtrer par catégorie</h5>
+            <div>
+                <button class="filter-btn active" onclick="filtrerProduits('TOUT')">
+                    <i class="fas fa-th"></i> Tout voir
+                </button>
+                <button class="filter-btn" onclick="filtrerProduits('BURGER')">
+                    <i class="fas fa-hamburger"></i> Burgers
+                </button>
+                <button class="filter-btn" onclick="filtrerProduits('MENU')">
+                    <i class="fas fa-utensils"></i> Menus
+                </button>
+                <button class="filter-btn" onclick="filtrerProduits('COMPLEMENT')">
+                    <i class="fas fa-french-fries"></i> Compléments
+                </button>
+            </div>
+        </div>
+
+        <!-- Section Burgers -->
+            <h2 id="burgers" class="section-title display-6 fade-in section-title-item" data-type="BURGER">NOS BURGERS</h2>        <div class="row g-4 mb-5">
+            @if (burgers != null && burgers.Any())
+            {
+                @foreach (var burger in burgers)
+                {
+                    <div class="col-xl-4 col-lg-4 col-md-6 product-item" data-type="BURGER">
+                        <div class="card product-card h-100">
+                            <img src="@burger.UrlImage" class="card-img-top" alt="@burger.Nom">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">@burger.Nom</h5>
+                                    <span class="badge-type badge-type-burger">BURGER</span>
+                                </div>
+                                <p class="card-text text-muted flex-grow-1 small">@burger.Description</p>
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <span class="price">@burger.Prix.ToString("N0") FCFA</span>
+                                    <button class="btn btn-order btn-sm" onclick="ajouterAuPanier(@burger.Id, '@burger.Nom.Replace("'", "\\'")', @burger.Prix)">
+                                        <i class="fas fa-cart-plus"></i> Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">Aucun burger disponible pour le moment.</div>
+                </div>
+            }
+        </div>
+
+        <!-- Section Menus -->
+        <h2 id="menus" class="section-title display-6 fade-in section-title-item" data-type="MENU">NOS MENUS</h2>
+        <div class="row g-4 mb-5">
+            @if (menus != null && menus.Any())
+            {
+                @foreach (var menu in menus)
+                {
+                    <div class="col-xl-3 col-lg-4 col-md-6 product-item" data-type="MENU">
+                        <div class="card product-card h-100">
+                            <div class="position-relative">
+                                <img src="@menu.UrlImage" class="card-img-top" alt="@menu.Nom">
+                                <span class="position-absolute top-0 end-0 badge-type badge-type-menu m-2">
+                                    MENU
+                                </span>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@menu.Nom</h5>
+                                <p class="card-text text-muted flex-grow-1 small">@menu.Description</p>
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <span class="price">@menu.Prix.ToString("N0") FCFA</span>
+                                    <button class="btn btn-order btn-sm" onclick="ajouterAuPanier(@menu.Id, '@menu.Nom.Replace("'", "\\'")', @menu.Prix)">
+                                        <i class="fas fa-cart-plus"></i> Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">Aucun menu disponible pour le moment.</div>
+                </div>
+            }
+        </div>
+
+        <!-- Section Compléments -->
+        <h2 id="complements" class="section-title display-6 fade-in section-title-item" data-type="COMPLEMENT">COMPLÉMENTS</h2>
+        <div class="row g-4">
+            @if (complements != null && complements.Any())
+            {
+                @foreach (var complement in complements)
+                {
+                    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 product-item" data-type="COMPLEMENT">
+                        <div class="card product-card h-100">
+                            <img src="@complement.UrlImage" class="card-img-top" alt="@complement.Nom" style="height: 150px;">
+                            <div class="card-body text-center">
+                                <span class="badge-type badge-type-complement mb-2 d-inline-block">COMPLÉMENT</span>
+                                <h6 class="card-title">@complement.Nom</h6>
+                                <p class="price">@complement.Prix.ToString("N0") FCFA</p>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="ajouterAuPanier(@complement.Id, '@complement.Nom.Replace("'", "\\'")', @complement.Prix)">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">Aucun complément disponible.</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        // Configurer Toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+
+        // Fonction pour filtrer les produits// ✅ FONCTION: Filtrer les produits
+        function filtrerProduits(type) {
+            // Mettre à jour les boutons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filtrer les PRODUITS
+            const produits = document.querySelectorAll('.product-item');
+            
+            // Filtrer les TITRES des sections
+            const titres = document.querySelectorAll('.section-title-item');
+            
+            // Cacher/montrer les titres
+            titres.forEach(titre => {
+                if (type === 'TOUT' || titre.dataset.type === type) {
+                    titre.style.display = 'block';
+                    // Animation
+                    titre.style.opacity = '1';
+                    titre.style.transform = 'translateY(0)';
+                } else {
+                    titre.style.opacity = '0';
+                    titre.style.transform = 'translateY(-20px)';
+                    setTimeout(() => {
+                        titre.style.display = 'none';
+                    }, 300);
+                }
+            });
+            
+            // Cacher/montrer les produits
+            produits.forEach(produit => {
+                if (type === 'TOUT') {
+                    produit.classList.remove('hidden');
+                    // Animation
+                    produit.style.opacity = '1';
+                    produit.style.transform = 'translateY(0)';
+                } else {
+                    if (produit.dataset.type === type) {
+                        produit.classList.remove('hidden');
+                        // Animation d'apparition
+                        setTimeout(() => {
+                            produit.style.opacity = '1';
+                            produit.style.transform = 'translateY(0)';
+                        }, 10);
+                    } else {
+                        // Animation de disparition
+                        produit.style.opacity = '0';
+                        produit.style.transform = 'translateY(20px)';
+                        setTimeout(() => {
+                            produit.classList.add('hidden');
+                        }, 300);
+                    }
+                }
+            });
+
+            // Scroll vers le catalogue
+            if (type !== 'TOUT') {
+                document.getElementById('catalogue').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Fonction pour ajouter au panier
+        async function ajouterAuPanier(id, nom, prix) {
+            try {
+                const response = await fetch('/Home/AjouterAuPanier?produitId=' + id + '&quantite=1', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Mettre à jour le badge
+                    document.getElementById('panierBadge').textContent = result.count;
+                    document.getElementById('panierLink').classList.add('cart-animation');
+                    
+                    // Afficher notification
+                    toastr.success(result.message);
+                    
+                    // Retirer l'animation après 500ms
+                    setTimeout(() => {
+                        document.getElementById('panierLink').classList.remove('cart-animation');
+                    }, 500);
+                }
+            } catch (error) {
+                toastr.error('Erreur lors de l\'ajout au panier');
+            }
+        }
+
+        // Mettre à jour régulièrement le compteur (au cas où)
+        async function mettreAJourCompteurPanier() {
+            try {
+                const response = await fetch('/Home/GetPanierCountApi');
+                const result = await response.json();
+                document.getElementById('panierBadge').textContent = result.count;
+            } catch (error) {
+                console.error('Erreur mise à jour panier:', error);
+            }
+        }
+
+        // Charger le compteur au démarrage
+        document.addEventListener('DOMContentLoaded', mettreAJourCompteurPanier);
+    </script>
+</body>
+</html>
