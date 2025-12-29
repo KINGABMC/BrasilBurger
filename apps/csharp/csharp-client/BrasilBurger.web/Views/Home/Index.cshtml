@@ -356,7 +356,7 @@
             {
                 @foreach (var menu in menus)
                 {
-                    <div class="col-xl-3 col-lg-4 col-md-6 product-item" data-type="MENU">
+                    <div class="col-xl-4 col-lg-4 col-md-6 product-item" data-type="MENU">
                         <div class="card product-card h-100">
                             <div class="position-relative">
                                 <img src="@menu.UrlImage" class="card-img-top" alt="@menu.Nom">
@@ -399,6 +399,7 @@
                             <div class="card-body text-center">
                                 <span class="badge-type badge-type-complement mb-2 d-inline-block">COMPLÉMENT</span>
                                 <h6 class="card-title">@complement.Nom</h6>
+                                <p class="card-text text-muted small">@complement.Description</p>
                                 <p class="price">@complement.Prix.ToString("N0") FCFA</p>
                                 <button class="btn btn-sm btn-outline-warning w-100" onclick="ajouterAuPanier(@complement.Id, '@complement.Nom.Replace("'", "\\'")', @complement.Prix)">
                                     <i class="fas fa-plus"></i> Ajouter
