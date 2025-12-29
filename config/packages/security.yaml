@@ -1,0 +1,6 @@
+security:
+    # Pas de configuration nécessaire pour l'authentification manuelle
+    # Laisse-le vide ou avec juste:
+    firewalls:
+        main:
+            security: false

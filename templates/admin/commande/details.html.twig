@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page_title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .timeline-item {
+            border-left: 3px solid #007bff;
+            padding-left: 15px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-4">
+    <h2>📦 Commande #{{ commande.numero }}</h2>
+    
+    <a href="{{ path('admin_commandes') }}" class="btn btn-secondary mb-3">← Retour</a>
+    
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show">
+            ✅ {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+    
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show">
+            ❌ {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📋 Informations</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Numéro:</strong></td>
+                            <td>#{{ commande.numero }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Date:</strong></td>
+                            <td>{{ commande.date_commande|date('d/m/Y à H:i') }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Statut:</strong></td>
+                            <td>
+                                <span class="badge fs-6 bg-{% if commande.statut == 'ANNULEE' %}danger{% elseif commande.statut in ['LIVREE', 'PRETE'] %}success{% elseif commande.statut == 'EN_ATTENTE' %}warning{% else %}info{% endif %}">
+                                    {{ commande.statut|upper }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mode:</strong></td>
+                            <td>
+                                {% if commande.mode_consommation == 'SUR_PLACE' %}🍽️ Sur place
+                                {% elseif commande.mode_consommation == 'EMPORTER' %}📦 À emporter
+                                {% else %}🚗 Livraison
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if commande.temps_estimation_livraison %}
+                        <tr>
+                            <td><strong>Délai estimé:</strong></td>
+                            <td>{{ commande.temps_estimation_livraison }} minutes</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">👤 Client</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nom:</strong> {{ commande.client_nom }} {{ commande.client_prenom }}</p>
+                    <p><strong>Téléphone:</strong> {{ commande.client_telephone }}</p>
+                    <p><strong>Email:</strong> {{ commande.client_email }}</p>
+                    
+                    {% if commande.mode_consommation == 'LIVRAISON' and commande.rue %}
+                    <hr>
+                    <h6>📍 Adresse</h6>
+                    <p class="mb-0">{{ commande.rue }}, N°{{ commande.adresse_numero }}</p>
+                    <p class="mb-0">{{ commande.quartier_nom }} - {{ commande.zone_nom }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">🍔 Produits</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Type</th>
+                        <th class="text-center">Qté</th>
+                        <th class="text-end">Prix U.</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in lignes %}
+                    <tr>
+                        <td><strong>{{ ligne.produit_nom }}</strong></td>
+                        <td><span class="badge bg-secondary">{{ ligne.produit_type }}</span></td>
+                        <td class="text-center">{{ ligne.quantite }}</td>
+                        <td class="text-end">{{ ligne.prix_unitaire|number_format(0, ',', ' ') }} FCFA</td>
+                        <td class="text-end"><strong>{{ ligne.sous_total|number_format(0, ',', ' ') }} FCFA</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-success">
+                        <td colspan="4" class="text-end"><strong>TOTAL:</strong></td>
+                        <td class="text-end"><h5>{{ commande.montant_total|number_format(0, ',', ' ') }} FCFA</h5></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    
+    {% if commande.mode_consommation == 'LIVRAISON' %}
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">🚗 Livraison</h5>
+        </div>
+        <div class="card-body">
+            {% if livraison %}
+            <p><strong>Livreur:</strong> {{ livraison.livreur_nom }} - {{ livraison.livreur_telephone }}</p>
+            <p><strong>Statut:</strong> <span class="badge bg-info">{{ livraison.statut }}</span></p>
+            {% if livraison.date_debut %}
+            <p><strong>Début livraison:</strong> {{ livraison.date_debut|date('d/m/Y H:i') }}</p>
+            {% endif %}
+            {% else %}
+            <p class="text-muted">Aucun livreur affecté</p>
+            {% endif %}
+            
+            {% if commande.statut == 'PRETE' %}
+            <form method="post" action="{{ path('admin_commande_affecter_livreur', {id: commande.id}) }}" class="mt-3">
+                <label class="form-label"><strong>Affecter un livreur:</strong></label>
+                <div class="input-group">
+                    <select name="livreur_id" class="form-select" required>
+                        <option value="">Sélectionner...</option>
+                        {% for livreur in livreurs %}
+                        <option value="{{ livreur.id }}">{{ livreur.nom }} - {{ livreur.telephone }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary">Affecter</button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Historique des statuts -->
+    {% if historique is not empty %}
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">📜 Historique des Statuts</h5>
+        </div>
+        <div class="card-body">
+            {% for h in historique %}
+            <div class="timeline-item mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        {% if h.ancien_statut %}
+                        <span class="badge bg-secondary">{{ h.ancien_statut }}</span>
+                        <span>→</span>
+                        {% endif %}
+                        <span class="badge bg-primary">{{ h.nouveau_statut }}</span>
+                    </div>
+                    <small class="text-muted">{{ h.changed_at|date('d/m/Y H:i:s') }}</small>
+                </div>
+                <div class="mt-2">
+                    <small><strong>Par:</strong> {{ h.changed_by }}</small>
+                    {% if h.notes %}
+                    <br><small class="text-muted">📝 {{ h.notes }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if statutsAutorises is not empty %}
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">⚙️ Actions</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ path('admin_commande_update_statut', {id: commande.id}) }}" class="d-inline-block me-2">
+                <div class="input-group" style="width: 300px;">
+                    <select name="statut" class="form-select" required>
+                        <option value="">Changer le statut...</option>
+                        {% for key, label in statutsAutorises %}
+                        <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-success">Valider</button>
+                </div>
+            </form>
+            
+            {% if commande.statut not in ['ANNULEE', 'LIVREE'] %}
+            <form method="post" action="{{ path('admin_commande_annuler', {id: commande.id}) }}" class="d-inline-block">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Confirmer l\'annulation ?')">
+                    ❌ Annuler la Commande
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
