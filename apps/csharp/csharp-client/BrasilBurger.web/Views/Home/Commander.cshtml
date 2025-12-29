@@ -243,7 +243,7 @@
                             </div>
                             <div class="col-md-4">
                                 <!-- ✅ CORRECTION: Ajout data-mode -->
-                                <div class="delivery-option" data-mode="EMPORTER" onclick="selectDelivery('EMPORTER', this)">
+                                <div class="delivery-option" data-mode="EMPORTER" onclick="selectDelivery('A_EMPORTER', this)">
                                     <i class="fas fa-store fa-3x text-secondary mb-3"></i>
                                     <h6>À emporter</h6>
                                     <small>Récupérez au comptoir</small>
@@ -251,7 +251,7 @@
                             </div>
                             <div class="col-md-4">
                                 <!-- ✅ CORRECTION: Ajout data-mode -->
-                                <div class="delivery-option" data-mode="LIVRAISON" onclick="selectDelivery('LIVRAISON', this)">
+                                <div class="delivery-option" data-mode="LIVRAISON" onclick="selectDelivery('LIVRAISON_DOMICILE', this)">
                                     <i class="fas fa-motorcycle fa-3x text-success mb-3"></i>
                                     <h6>Livraison</h6>
                                     <small>Livré à votre adresse</small>
@@ -515,7 +515,7 @@
         const address = document.getElementById('addressSection');
         const deliveryRow = document.getElementById('deliveryFeeRow');
 
-        if(mode === 'LIVRAISON') {
+        if(mode === 'LIVRAISON_DOMICILE') {
             indicator.innerHTML = '<i class="fas fa-motorcycle"></i> Livraison à domicile';
             address.style.display = 'block';
             deliveryRow.style.display = 'flex';
@@ -526,7 +526,7 @@
             deliveryRow.style.display = 'none';
             deliveryFee = 0;
             updateTotal();
-        } else { // EMPORTER
+        } else { // A_EMPORTER
             indicator.innerHTML = '<i class="fas fa-store"></i> À emporter';
             address.style.display = 'none';
             deliveryRow.style.display = 'none';
@@ -591,7 +591,7 @@
         }
 
         // 3️⃣ VALIDATION Adresse de livraison
-        if (selectedDelivery === 'LIVRAISON') {
+        if (selectedDelivery === 'LIVRAISON_DOMICILE') {
             const rue = document.getElementById('rue');
             const quartierId = document.getElementById('quartierId');
             
@@ -625,7 +625,7 @@
         formData.append('telephone', document.getElementById('telephone').value.trim());
         formData.append('notes', document.getElementById('notes').value.trim());
 
-        if (selectedDelivery === 'LIVRAISON') {
+        if (selectedDelivery === 'LIVRAISON_DOMICILE') {
             const quartierId = document.getElementById('quartierId').value;
             if (quartierId) formData.append('quartierId', quartierId);
             formData.append('rue', document.getElementById('rue').value.trim());
