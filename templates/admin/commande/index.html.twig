@@ -4,6 +4,368 @@
     <meta charset="UTF-8">
     <title>{{ page_title }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --brasil-green: #009739;
+            --brasil-yellow: #FEDD00;
+            --brasil-blue: #012169;
+            --burger-orange: #FF6B35;
+            --teal: #17a2b8;
+            --dark-text: #2d3748;
+            --light-gray: #f7fafc;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            padding: 2rem;
+        }
+
+        /* Header */
+        h1 {
+            background: linear-gradient(135deg, var(--brasil-green), #00b547);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            font-size: 2.8rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #718096, #4a5568);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #4a5568, #718096);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--burger-orange), #ff8659);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #e55a28, var(--burger-orange));
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--brasil-green), #00b547);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #007a2d, var(--brasil-green));
+        }
+
+        .btn-sm {
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            border-radius: 20px;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--teal), #20c9e3);
+            color: white;
+        }
+
+        .btn-outline-secondary {
+            background: white;
+            border: 2px solid #e2e8f0;
+            color: #718096;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        /* Alerts */
+        .alert {
+            border: none;
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            font-weight: 500;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+
+        .btn-close {
+            filter: none;
+        }
+
+        /* Card Filters */
+        .card {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--brasil-green), #00b547);
+            color: white;
+            padding: 1.5rem;
+            border: none;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: -0.3px;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        /* Form elements */
+        .form-label {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-select,
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        .form-select:focus,
+        .form-control:focus {
+            border-color: var(--brasil-green);
+            box-shadow: 0 0 0 4px rgba(0, 151, 57, 0.1);
+            background: white;
+            outline: none;
+        }
+
+        /* Text muted */
+        .text-muted {
+            color: #718096 !important;
+            font-size: 0.9rem;
+        }
+
+        /* Table styling */
+        .table {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.06);
+            margin-bottom: 2rem;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--brasil-green), #00b547);
+            color: white;
+            border: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1.2px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+        }
+
+        .table tbody tr {
+            transition: all 0.25s ease;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(0, 151, 57, 0.04);
+            transform: scale(1.01);
+        }
+
+        .table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .table td {
+            padding: 1.25rem 1rem;
+            border: none;
+            vertical-align: middle;
+            color: var(--dark-text);
+            text-align: center;
+        }
+
+        .table td:first-child {
+            font-weight: 700;
+            color: var(--brasil-green);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, #28a745, #218838) !important;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--brasil-yellow), #f0c800) !important;
+            color: var(--dark-text) !important;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, var(--teal), #20c9e3) !important;
+        }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 2rem;
+        }
+
+        .page-item .page-link {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin: 0 0.25rem;
+            padding: 0.75rem 1.25rem;
+            color: var(--brasil-green);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .page-item .page-link:hover {
+            background: var(--brasil-green);
+            border-color: var(--brasil-green);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--brasil-green), #00b547);
+            border-color: var(--brasil-green);
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 151, 57, 0.3);
+        }
+
+        .page-item.disabled .page-link {
+            background: #f7fafc;
+            border-color: #e2e8f0;
+            color: #cbd5e0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .table {
+                font-size: 0.85rem;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .card-body .row > div {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Empty state */
+        .table tbody tr td[colspan] {
+            padding: 3rem;
+            font-style: italic;
+            color: #a0aec0;
+        }
+
+        /* Form inline button */
+        form[style*="inline"] {
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-4">
@@ -28,7 +390,7 @@
     
     <!-- Filtres -->
     <div class="card mb-4">
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5>🔍 Filtres de Recherche</h5>
         </div>
         <div class="card-body">
@@ -63,7 +425,7 @@
                         <label class="form-label">Client</label>
                         <input type="text" name="client" class="form-control" placeholder="Nom, prénom ou tél" value="{{ filtreClient }}">
                     </div>
-                    <div class="col-md-1 d-flex align-items-end">
+                    <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">Filtrer</button>
                     </div>
                 </div>
@@ -142,19 +504,20 @@
                 {% if p == page %}
                 <li class="page-item active"><span class="page-link">{{ p }}</span></li>
                 {% elseif p <= 3 or p >= totalPages - 3 or (p >= page - 1 and p <= page + 1) %}
-         <li class="page-item">
-    <a class="page-link" href="{{ path('admin_commandes', {
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('admin_commandes', {
                         page: p,
                         statut: filtreStatut,
                         date: filtreDate,
                         client: filtreClient,
                         type: filtreType
                     }) }}">{{ p }}</a>
-    </li>
-    {% elseif p == 4 or p == totalPages - 3 %}
-    <li class="page-item disabled"><span class="page-link">...</span></li>
-    {% endif %}
-    {% endfor %}
+                </li>
+                {% elseif p == 4 or p == totalPages - 3 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            
             {% if page < totalPages %}
             <li class="page-item">
                 <a class="page-link" href="{{ path('admin_commandes', {
@@ -169,7 +532,7 @@
         </ul>
     </nav>
     {% endif %}
- </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
